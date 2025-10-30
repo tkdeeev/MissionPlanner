@@ -1525,14 +1525,14 @@ namespace MissionPlanner.Controls
 
                     float myxtrack_error = _xtrack_error;
 
-                    myxtrack_error = Math.Min(myxtrack_error, 40);
-                    myxtrack_error = Math.Max(myxtrack_error, -40);
+                    myxtrack_error = Math.Min(myxtrack_error, 4);
+                    myxtrack_error = Math.Max(myxtrack_error, -4);
 
                     //  xtrack - distance scale - space
-                    float loc = myxtrack_error / 20.0f * xtspace;
+                    float loc = myxtrack_error / 2.0f * xtspace;
 
                     // current xtrack
-                    if (Math.Abs(myxtrack_error) == 40)
+                    if (Math.Abs(myxtrack_error) == 4)
                     {
                         this._greenPen.Color = Color.FromArgb(128, this._greenPen.Color);
                     }
@@ -1576,7 +1576,7 @@ namespace MissionPlanner.Controls
                     float trwidth = (this.Width / 10 + xtspace * 2 - xtspace / 2) -
                                     (this.Width / 10 - xtspace * 2 - xtspace / 2);
 
-                    float range = 12;
+                    float range = 40;
 
                     myturnrate = Math.Min(myturnrate, range / 2);
                     myturnrate = Math.Max(myturnrate, (range / 2) * -1.0f);

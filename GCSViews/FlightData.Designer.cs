@@ -47,6 +47,40 @@ namespace MissionPlanner.GCSViews
             this.quickView2 = new MissionPlanner.Controls.QuickView();
             this.quickView1 = new MissionPlanner.Controls.QuickView();
             this.tabActions = new System.Windows.Forms.TabPage();
+            this.tabModes = new System.Windows.Forms.TabPage();
+            this.tableLayoutPanelModes = new System.Windows.Forms.TableLayoutPanel();
+            this.groupBoxLoiter = new System.Windows.Forms.GroupBox();
+            this.flowLayoutPanelLoiterSpeed = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanelLoiterClimbSpeed = new System.Windows.Forms.FlowLayoutPanel();
+            this.labelLoiterSpeed = new System.Windows.Forms.Label();
+            this.labelLoiterClimbSpeed = new System.Windows.Forms.Label();
+            this.groupBoxCircle = new System.Windows.Forms.GroupBox();
+            this.modifyandSetCircleRadius = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetCircleRate = new MissionPlanner.Controls.ModifyandSet();
+            this.groupBoxAuto = new System.Windows.Forms.GroupBox();
+            this.modifyandSetWPRadius = new MissionPlanner.Controls.ModifyandSet();
+            this.labelWPSpeed = new System.Windows.Forms.Label();
+            this.labelWPSpeedClimb = new System.Windows.Forms.Label();
+            this.labelWPRadiusButtons = new System.Windows.Forms.Label();
+            this.labelCircleRadius = new System.Windows.Forms.Label();
+            this.labelCircleRate = new System.Windows.Forms.Label();
+            this.labelWPRadius = new System.Windows.Forms.Label();
+            this.labelRTLAlt = new System.Windows.Forms.Label();
+            this.modifyandSetLoiterSpeed = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetLoiterClimbSpeed = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetWPSpeed = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetWPSpeedClimb = new MissionPlanner.Controls.ModifyandSet();
+            this.modifyandSetRTLSpeed = new MissionPlanner.Controls.ModifyandSet();
+            this.flowLayoutPanelWPSpeed = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanelWPSpeedClimb = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanelWPRadius = new System.Windows.Forms.FlowLayoutPanel();
+            this.groupBoxRTL = new System.Windows.Forms.GroupBox();
+            this.modifyandSetRTLAlt = new MissionPlanner.Controls.ModifyandSet();
+            this.labelRTLSpeed = new System.Windows.Forms.Label();
+            this.flowLayoutPanelRTLAlt = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanelRTLSpeed = new System.Windows.Forms.FlowLayoutPanel();
+            this.buttonRCToggle = new MissionPlanner.Controls.MyButton();
+            this.panelModesScroll = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.BUT_SendMSG = new MissionPlanner.Controls.MyButton();
             this.BUT_abortland = new MissionPlanner.Controls.MyButton();
@@ -229,6 +263,7 @@ namespace MissionPlanner.GCSViews
             this.label4 = new System.Windows.Forms.Label();
             this.lbl_hdop = new MissionPlanner.Controls.MyLabel();
             this.lbl_sats = new MissionPlanner.Controls.MyLabel();
+            this.lbl_sats2 = new MissionPlanner.Controls.MyLabel();
             this.gMapControl1 = new MissionPlanner.Controls.myGMAP();
             this.panel1 = new System.Windows.Forms.Panel();
             this.coords1 = new MissionPlanner.Controls.Coords();
@@ -593,6 +628,7 @@ namespace MissionPlanner.GCSViews
             this.tabControlactions.ContextMenuStrip = this.contextMenuStripactionstab;
             this.tabControlactions.Controls.Add(this.tabQuick);
             this.tabControlactions.Controls.Add(this.tabActions);
+            this.tabControlactions.Controls.Add(this.tabModes);
             this.tabControlactions.Controls.Add(this.tabPagemessages);
             this.tabControlactions.Controls.Add(this.tabActionsSimple);
             this.tabControlactions.Controls.Add(this.tabPagePreFlight);
@@ -740,32 +776,440 @@ namespace MissionPlanner.GCSViews
             this.tabActions.Name = "tabActions";
             this.tabActions.UseVisualStyleBackColor = true;
             // 
+            // tabModes
+            // 
+            this.tabModes.Controls.Add(this.buttonRCToggle);
+            this.tabModes.Controls.Add(this.panelModesScroll);
+            resources.ApplyResources(this.tabModes, "tabModes");
+            this.tabModes.Name = "tabModes";
+            this.tabModes.UseVisualStyleBackColor = true;
+            // 
+            // tableLayoutPanelModes
+            // 
+            this.tableLayoutPanelModes.ColumnCount = 1;
+            this.tableLayoutPanelModes.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanelModes.Controls.Add(this.groupBoxLoiter, 0, 0);
+            this.tableLayoutPanelModes.Controls.Add(this.groupBoxCircle, 0, 1);
+            this.tableLayoutPanelModes.Controls.Add(this.groupBoxAuto, 0, 2);
+            this.tableLayoutPanelModes.Controls.Add(this.groupBoxRTL, 0, 3);
+            this.tableLayoutPanelModes.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanelModes.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanelModes.Name = "tableLayoutPanelModes";
+            this.tableLayoutPanelModes.Padding = new System.Windows.Forms.Padding(10);
+            this.tableLayoutPanelModes.RowCount = 4;
+            this.tableLayoutPanelModes.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanelModes.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            this.tableLayoutPanelModes.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanelModes.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanelModes.Size = new System.Drawing.Size(800, 600);
+            this.tableLayoutPanelModes.TabIndex = 0;
+            // 
+            // labelLoiterSpeed
+            // 
+            resources.ApplyResources(this.labelLoiterSpeed, "labelLoiterSpeed");
+            this.labelLoiterSpeed.Name = "labelLoiterSpeed";
+            // 
+            // labelLoiterClimbSpeed
+            // 
+            resources.ApplyResources(this.labelLoiterClimbSpeed, "labelLoiterClimbSpeed");
+            this.labelLoiterClimbSpeed.Name = "labelLoiterClimbSpeed";
+            // 
+            // groupBoxLoiter
+            // 
+            this.groupBoxLoiter.Controls.Add(this.labelLoiterSpeed);
+            this.groupBoxLoiter.Controls.Add(this.flowLayoutPanelLoiterSpeed);
+            this.groupBoxLoiter.Controls.Add(this.modifyandSetLoiterSpeed);
+            this.groupBoxLoiter.Controls.Add(this.labelLoiterClimbSpeed);
+            this.groupBoxLoiter.Controls.Add(this.flowLayoutPanelLoiterClimbSpeed);
+            this.groupBoxLoiter.Controls.Add(this.modifyandSetLoiterClimbSpeed);
+            resources.ApplyResources(this.groupBoxLoiter, "groupBoxLoiter");
+            this.groupBoxLoiter.Name = "groupBoxLoiter";
+            this.groupBoxLoiter.TabStop = false;
+            this.groupBoxLoiter.Dock = System.Windows.Forms.DockStyle.Fill;
+            // 
+            // labelLoiterSpeed
+            // 
+            resources.ApplyResources(this.labelLoiterSpeed, "labelLoiterSpeed");
+            this.labelLoiterSpeed.Location = new System.Drawing.Point(6, 19);
+            this.labelLoiterSpeed.Name = "labelLoiterSpeed";
+            this.labelLoiterSpeed.AutoSize = true;
+            // 
+            // flowLayoutPanelLoiterSpeed
+            // 
+            this.flowLayoutPanelLoiterSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelLoiterSpeed.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelLoiterSpeed.WrapContents = true;
+            this.flowLayoutPanelLoiterSpeed.Location = new System.Drawing.Point(120, 16);
+            this.flowLayoutPanelLoiterSpeed.Name = "flowLayoutPanelLoiterSpeed";
+            this.flowLayoutPanelLoiterSpeed.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelLoiterSpeed.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelLoiterSpeed.TabIndex = 1;
+            // 
+            // modifyandSetLoiterSpeed
+            // 
+            resources.ApplyResources(this.modifyandSetLoiterSpeed, "modifyandSetLoiterSpeed");
+            this.modifyandSetLoiterSpeed.ButtonText = "Set";
+            this.modifyandSetLoiterSpeed.DecimalPlaces = 1;
+            this.modifyandSetLoiterSpeed.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetLoiterSpeed.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            this.modifyandSetLoiterSpeed.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetLoiterSpeed.Name = "modifyandSetLoiterSpeed";
+            this.modifyandSetLoiterSpeed.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            this.modifyandSetLoiterSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetLoiterSpeed.Location = new System.Drawing.Point(630, 16);
+            this.modifyandSetLoiterSpeed.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetLoiterSpeed.Click += new System.EventHandler(this.modifyandSetLoiterSpeed_Click);
+            // 
+            // labelLoiterClimbSpeed
+            // 
+            resources.ApplyResources(this.labelLoiterClimbSpeed, "labelLoiterClimbSpeed");
+            this.labelLoiterClimbSpeed.Location = new System.Drawing.Point(6, 54);
+            this.labelLoiterClimbSpeed.Name = "labelLoiterClimbSpeed";
+            this.labelLoiterClimbSpeed.AutoSize = true;
+            // 
+            // flowLayoutPanelLoiterClimbSpeed
+            // 
+            this.flowLayoutPanelLoiterClimbSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelLoiterClimbSpeed.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelLoiterClimbSpeed.WrapContents = true;
+            this.flowLayoutPanelLoiterClimbSpeed.Location = new System.Drawing.Point(120, 51);
+            this.flowLayoutPanelLoiterClimbSpeed.Name = "flowLayoutPanelLoiterClimbSpeed";
+            this.flowLayoutPanelLoiterClimbSpeed.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelLoiterClimbSpeed.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelLoiterClimbSpeed.TabIndex = 2;
+            // 
+            // modifyandSetLoiterClimbSpeed
+            // 
+            resources.ApplyResources(this.modifyandSetLoiterClimbSpeed, "modifyandSetLoiterClimbSpeed");
+            this.modifyandSetLoiterClimbSpeed.ButtonText = "Set";
+            this.modifyandSetLoiterClimbSpeed.DecimalPlaces = 1;
+            this.modifyandSetLoiterClimbSpeed.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetLoiterClimbSpeed.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+            this.modifyandSetLoiterClimbSpeed.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetLoiterClimbSpeed.Name = "modifyandSetLoiterClimbSpeed";
+            this.modifyandSetLoiterClimbSpeed.Value = new decimal(new int[] { 2, 0, 0, 0 });
+            this.modifyandSetLoiterClimbSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetLoiterClimbSpeed.Location = new System.Drawing.Point(630, 51);
+            this.modifyandSetLoiterClimbSpeed.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetLoiterClimbSpeed.Click += new System.EventHandler(this.modifyandSetLoiterClimbSpeed_Click);
+            // 
+            // groupBoxCircle
+            // 
+            this.groupBoxCircle.Controls.Add(this.labelCircleRadius);
+            this.groupBoxCircle.Controls.Add(this.modifyandSetCircleRadius);
+            this.groupBoxCircle.Controls.Add(this.labelCircleRate);
+            this.groupBoxCircle.Controls.Add(this.modifyandSetCircleRate);
+            resources.ApplyResources(this.groupBoxCircle, "groupBoxCircle");
+            this.groupBoxCircle.Name = "groupBoxCircle";
+            this.groupBoxCircle.TabStop = false;
+            this.groupBoxCircle.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxCircle.AutoSize = false;
+            this.groupBoxCircle.MinimumSize = new System.Drawing.Size(0, 60);
+            this.groupBoxCircle.MaximumSize = new System.Drawing.Size(2000, 60);
+            // 
+            // labelCircleRadius
+            // 
+            resources.ApplyResources(this.labelCircleRadius, "labelCircleRadius");
+            this.labelCircleRadius.Location = new System.Drawing.Point(6, 19);
+            this.labelCircleRadius.Name = "labelCircleRadius";
+            this.labelCircleRadius.AutoSize = true;
+            // 
+            // modifyandSetCircleRadius
+            // 
+            resources.ApplyResources(this.modifyandSetCircleRadius, "modifyandSetCircleRadius");
+            this.modifyandSetCircleRadius.ButtonText = "Set";
+            this.modifyandSetCircleRadius.DecimalPlaces = 1;
+            this.modifyandSetCircleRadius.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetCircleRadius.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            this.modifyandSetCircleRadius.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetCircleRadius.Name = "modifyandSetCircleRadius";
+            this.modifyandSetCircleRadius.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            this.modifyandSetCircleRadius.Location = new System.Drawing.Point(-94, 16);
+            this.modifyandSetCircleRadius.Size = new System.Drawing.Size(120, 26);
+            this.modifyandSetCircleRadius.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetCircleRadius.NumericUpDown.Size = new System.Drawing.Size(80, 23);
+            this.modifyandSetCircleRadius.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.modifyandSetCircleRadius.Click += new System.EventHandler(this.modifyandSetCircleRadius_Click);
+            // 
+            // labelCircleRate
+            // 
+            resources.ApplyResources(this.labelCircleRate, "labelCircleRate");
+            this.labelCircleRate.Location = new System.Drawing.Point(220, 19);
+            this.labelCircleRate.Name = "labelCircleRate";
+            this.labelCircleRate.AutoSize = true;
+            // 
+            // modifyandSetCircleRate
+            // 
+            resources.ApplyResources(this.modifyandSetCircleRate, "modifyandSetCircleRate");
+            this.modifyandSetCircleRate.ButtonText = "Set";
+            this.modifyandSetCircleRate.DecimalPlaces = 1;
+            this.modifyandSetCircleRate.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetCircleRate.Maximum = new decimal(new int[] { 360, 0, 0, 0 });
+            this.modifyandSetCircleRate.Minimum = new decimal(new int[] { -360, 0, 0, -2147483648 });
+            this.modifyandSetCircleRate.Name = "modifyandSetCircleRate";
+            this.modifyandSetCircleRate.Value = new decimal(new int[] { 20, 0, 0, 0 });
+            this.modifyandSetCircleRate.Location = new System.Drawing.Point(120, 16);
+            this.modifyandSetCircleRate.Size = new System.Drawing.Size(120, 26);
+            this.modifyandSetCircleRate.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetCircleRate.NumericUpDown.Size = new System.Drawing.Size(80, 23);
+            this.modifyandSetCircleRate.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.modifyandSetCircleRate.Click += new System.EventHandler(this.modifyandSetCircleRate_Click);
+            // 
+            // groupBoxAuto
+            // 
+            this.groupBoxAuto.Controls.Add(this.labelWPRadius);
+            this.groupBoxAuto.Controls.Add(this.flowLayoutPanelWPRadius);
+            this.groupBoxAuto.Controls.Add(this.modifyandSetWPRadius);
+            this.groupBoxAuto.Controls.Add(this.labelWPSpeed);
+            this.groupBoxAuto.Controls.Add(this.flowLayoutPanelWPSpeed);
+            this.groupBoxAuto.Controls.Add(this.modifyandSetWPSpeed);
+            this.groupBoxAuto.Controls.Add(this.labelWPSpeedClimb);
+            this.groupBoxAuto.Controls.Add(this.flowLayoutPanelWPSpeedClimb);
+            this.groupBoxAuto.Controls.Add(this.modifyandSetWPSpeedClimb);
+            resources.ApplyResources(this.groupBoxAuto, "groupBoxAuto");
+            this.groupBoxAuto.Name = "groupBoxAuto";
+            this.groupBoxAuto.TabStop = false;
+            this.groupBoxAuto.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBoxAuto.MinimumSize = new System.Drawing.Size(0, 140);
+            // 
+            // labelWPRadius
+            // 
+            resources.ApplyResources(this.labelWPRadius, "labelWPRadius");
+            this.labelWPRadius.Location = new System.Drawing.Point(6, 19);
+            this.labelWPRadius.Name = "labelWPRadius";
+            this.labelWPRadius.AutoSize = true;
+            // 
+            // flowLayoutPanelWPRadius
+            // 
+            this.flowLayoutPanelWPRadius.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelWPRadius.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelWPRadius.WrapContents = true;
+            this.flowLayoutPanelWPRadius.Location = new System.Drawing.Point(120, 16);
+            this.flowLayoutPanelWPRadius.Name = "flowLayoutPanelWPRadius";
+            this.flowLayoutPanelWPRadius.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelWPRadius.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelWPRadius.TabIndex = 3;
+            // 
+            // modifyandSetWPRadius
+            // 
+            resources.ApplyResources(this.modifyandSetWPRadius, "modifyandSetWPRadius");
+            this.modifyandSetWPRadius.ButtonText = "Set";
+            this.modifyandSetWPRadius.DecimalPlaces = 1;
+            this.modifyandSetWPRadius.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetWPRadius.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            this.modifyandSetWPRadius.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetWPRadius.Name = "modifyandSetWPRadius";
+            this.modifyandSetWPRadius.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            this.modifyandSetWPRadius.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetWPRadius.Location = new System.Drawing.Point(630, 16);
+            this.modifyandSetWPRadius.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetWPRadius.Click += new System.EventHandler(this.modifyandSetWPRadius_Click);
+            // 
+            // labelWPSpeed
+            // 
+            resources.ApplyResources(this.labelWPSpeed, "labelWPSpeed");
+            this.labelWPSpeed.Location = new System.Drawing.Point(6, 54);
+            this.labelWPSpeed.Name = "labelWPSpeed";
+            this.labelWPSpeed.AutoSize = true;
+            // 
+            // flowLayoutPanelWPSpeed
+            // 
+            this.flowLayoutPanelWPSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelWPSpeed.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelWPSpeed.WrapContents = true;
+            this.flowLayoutPanelWPSpeed.Location = new System.Drawing.Point(120, 51);
+            this.flowLayoutPanelWPSpeed.Name = "flowLayoutPanelWPSpeed";
+            this.flowLayoutPanelWPSpeed.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelWPSpeed.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelWPSpeed.TabIndex = 1;
+            // 
+            // modifyandSetWPSpeed
+            // 
+            resources.ApplyResources(this.modifyandSetWPSpeed, "modifyandSetWPSpeed");
+            this.modifyandSetWPSpeed.ButtonText = "Set";
+            this.modifyandSetWPSpeed.DecimalPlaces = 1;
+            this.modifyandSetWPSpeed.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetWPSpeed.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            this.modifyandSetWPSpeed.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetWPSpeed.Name = "modifyandSetWPSpeed";
+            this.modifyandSetWPSpeed.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            this.modifyandSetWPSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetWPSpeed.Location = new System.Drawing.Point(630, 51);
+            this.modifyandSetWPSpeed.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetWPSpeed.Click += new System.EventHandler(this.modifyandSetWPSpeed_Click);
+            // 
+            // labelWPSpeedClimb
+            // 
+            resources.ApplyResources(this.labelWPSpeedClimb, "labelWPSpeedClimb");
+            this.labelWPSpeedClimb.Location = new System.Drawing.Point(6, 89);
+            this.labelWPSpeedClimb.Name = "labelWPSpeedClimb";
+            this.labelWPSpeedClimb.AutoSize = true;
+            // 
+            // flowLayoutPanelWPSpeedClimb
+            // 
+            this.flowLayoutPanelWPSpeedClimb.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelWPSpeedClimb.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelWPSpeedClimb.WrapContents = true;
+            this.flowLayoutPanelWPSpeedClimb.Location = new System.Drawing.Point(120, 86);
+            this.flowLayoutPanelWPSpeedClimb.Name = "flowLayoutPanelWPSpeedClimb";
+            this.flowLayoutPanelWPSpeedClimb.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelWPSpeedClimb.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelWPSpeedClimb.TabIndex = 2;
+            // 
+            // modifyandSetWPSpeedClimb
+            // 
+            resources.ApplyResources(this.modifyandSetWPSpeedClimb, "modifyandSetWPSpeedClimb");
+            this.modifyandSetWPSpeedClimb.ButtonText = "Set";
+            this.modifyandSetWPSpeedClimb.DecimalPlaces = 1;
+            this.modifyandSetWPSpeedClimb.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetWPSpeedClimb.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+            this.modifyandSetWPSpeedClimb.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetWPSpeedClimb.Name = "modifyandSetWPSpeedClimb";
+            this.modifyandSetWPSpeedClimb.Value = new decimal(new int[] { 2, 0, 0, 0 });
+            this.modifyandSetWPSpeedClimb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetWPSpeedClimb.Location = new System.Drawing.Point(630, 86);
+            this.modifyandSetWPSpeedClimb.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetWPSpeedClimb.Click += new System.EventHandler(this.modifyandSetWPSpeedClimb_Click);
+            // 
+            // groupBoxRTL
+            // 
+            this.groupBoxRTL.Controls.Add(this.labelRTLAlt);
+            this.groupBoxRTL.Controls.Add(this.flowLayoutPanelRTLAlt);
+            this.groupBoxRTL.Controls.Add(this.modifyandSetRTLAlt);
+            this.groupBoxRTL.Controls.Add(this.labelRTLSpeed);
+            this.groupBoxRTL.Controls.Add(this.flowLayoutPanelRTLSpeed);
+            this.groupBoxRTL.Controls.Add(this.modifyandSetRTLSpeed);
+            resources.ApplyResources(this.groupBoxRTL, "groupBoxRTL");
+            this.groupBoxRTL.Name = "groupBoxRTL";
+            this.groupBoxRTL.TabStop = false;
+            this.groupBoxRTL.Dock = System.Windows.Forms.DockStyle.Fill;
+            // 
+            // labelRTLAlt
+            // 
+            resources.ApplyResources(this.labelRTLAlt, "labelRTLAlt");
+            this.labelRTLAlt.Location = new System.Drawing.Point(6, 19);
+            this.labelRTLAlt.Name = "labelRTLAlt";
+            this.labelRTLAlt.AutoSize = true;
+            // 
+            // flowLayoutPanelRTLAlt
+            // 
+            this.flowLayoutPanelRTLAlt.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelRTLAlt.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelRTLAlt.WrapContents = true;
+            this.flowLayoutPanelRTLAlt.Location = new System.Drawing.Point(120, 16);
+            this.flowLayoutPanelRTLAlt.Name = "flowLayoutPanelRTLAlt";
+            this.flowLayoutPanelRTLAlt.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelRTLAlt.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelRTLAlt.TabIndex = 1;
+            // 
+            // modifyandSetRTLAlt
+            // 
+            resources.ApplyResources(this.modifyandSetRTLAlt, "modifyandSetRTLAlt");
+            this.modifyandSetRTLAlt.ButtonText = "Set";
+            this.modifyandSetRTLAlt.DecimalPlaces = 1;
+            this.modifyandSetRTLAlt.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetRTLAlt.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            this.modifyandSetRTLAlt.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetRTLAlt.Name = "modifyandSetRTLAlt";
+            this.modifyandSetRTLAlt.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            this.modifyandSetRTLAlt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetRTLAlt.Location = new System.Drawing.Point(630, 16);
+            this.modifyandSetRTLAlt.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetRTLAlt.Click += new System.EventHandler(this.modifyandSetRTLAlt_Click);
+            // 
+            // labelRTLSpeed
+            // 
+            resources.ApplyResources(this.labelRTLSpeed, "labelRTLSpeed");
+            this.labelRTLSpeed.Location = new System.Drawing.Point(6, 54);
+            this.labelRTLSpeed.Name = "labelRTLSpeed";
+            this.labelRTLSpeed.AutoSize = true;
+            // 
+            // flowLayoutPanelRTLSpeed
+            // 
+            this.flowLayoutPanelRTLSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanelRTLSpeed.FlowDirection = System.Windows.Forms.FlowDirection.LeftToRight;
+            this.flowLayoutPanelRTLSpeed.WrapContents = true;
+            this.flowLayoutPanelRTLSpeed.Location = new System.Drawing.Point(120, 51);
+            this.flowLayoutPanelRTLSpeed.Name = "flowLayoutPanelRTLSpeed";
+            this.flowLayoutPanelRTLSpeed.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanelRTLSpeed.Size = new System.Drawing.Size(500, 35);
+            this.flowLayoutPanelRTLSpeed.TabIndex = 2;
+            // 
+            // modifyandSetRTLSpeed
+            // 
+            resources.ApplyResources(this.modifyandSetRTLSpeed, "modifyandSetRTLSpeed");
+            this.modifyandSetRTLSpeed.ButtonText = "Set";
+            this.modifyandSetRTLSpeed.DecimalPlaces = 1;
+            this.modifyandSetRTLSpeed.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            this.modifyandSetRTLSpeed.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            this.modifyandSetRTLSpeed.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+            this.modifyandSetRTLSpeed.Name = "modifyandSetRTLSpeed";
+            this.modifyandSetRTLSpeed.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            this.modifyandSetRTLSpeed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.modifyandSetRTLSpeed.Location = new System.Drawing.Point(630, 51);
+            this.modifyandSetRTLSpeed.Button.Size = new System.Drawing.Size(40, 23);
+            this.modifyandSetRTLSpeed.Click += new System.EventHandler(this.modifyandSetRTLSpeed_Click);
+            // 
+            // panelModesScroll
+            // 
+            this.panelModesScroll.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelModesScroll.AutoScroll = true;
+            this.panelModesScroll.Controls.Add(this.tableLayoutPanelModes);
+            this.panelModesScroll.Location = new System.Drawing.Point(0, 0);
+            this.panelModesScroll.Name = "panelModesScroll";
+            this.panelModesScroll.Size = new System.Drawing.Size(800, 600);
+            this.panelModesScroll.TabIndex = 1;
+            // 
+            // buttonRCToggle
+            // 
+            this.buttonRCToggle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonRCToggle.ColorMouseDown = System.Drawing.Color.Empty;
+            this.buttonRCToggle.ColorMouseOver = System.Drawing.Color.Empty;
+            this.buttonRCToggle.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.buttonRCToggle, "buttonRCToggle");
+            this.buttonRCToggle.Location = new System.Drawing.Point(710, 3);
+            this.buttonRCToggle.Name = "buttonRCToggle";
+            this.buttonRCToggle.Size = new System.Drawing.Size(90, 30);
+            this.buttonRCToggle.TabIndex = 0;
+            this.buttonRCToggle.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.buttonRCToggle.UseVisualStyleBackColor = true;
+            this.buttonRCToggle.Click += new System.EventHandler(this.buttonRCToggle_Click);
+            // 
             // tableLayoutPanel1
             // 
             resources.ApplyResources(this.tableLayoutPanel1, "tableLayoutPanel1");
-            this.tableLayoutPanel1.Controls.Add(this.BUT_SendMSG, 2, 4);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_abortland, 4, 4);
-            this.tableLayoutPanel1.Controls.Add(this.modifyandSetLoiterRad, 4, 2);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_clear_track, 4, 3);
-            this.tableLayoutPanel1.Controls.Add(this.CMB_action, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.BUTactiondo, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_resumemis, 3, 4);
-            this.tableLayoutPanel1.Controls.Add(this.modifyandSetAlt, 4, 1);
-            this.tableLayoutPanel1.Controls.Add(this.modifyandSetSpeed, 4, 0);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_SendMSG, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_abortland, 3, 3);
+            //this.tableLayoutPanel1.Controls.Add(this.modifyandSetLoiterRad, 4, 2);
+            //this.tableLayoutPanel1.Controls.Add(this.BUT_clear_track, 4, 3);
+            //this.tableLayoutPanel1.Controls.Add(this.CMB_action, 0, 0);
+            //this.tableLayoutPanel1.Controls.Add(this.BUTactiondo, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_resumemis, 3, 2);
+            //this.tableLayoutPanel1.Controls.Add(this.modifyandSetAlt, 4, 1);
+            //this.tableLayoutPanel1.Controls.Add(this.modifyandSetSpeed, 4, 0);
             this.tableLayoutPanel1.Controls.Add(this.CMB_setwp, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_ARM, 3, 3);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_mountmode, 1, 3);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_joystick, 2, 3);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_RAWSensor, 3, 2);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_Homealt, 3, 0);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_ARM, 3, 0);
+            //this.tableLayoutPanel1.Controls.Add(this.BUT_mountmode, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_joystick, 0, 2);
+            //this.tableLayoutPanel1.Controls.Add(this.BUT_RAWSensor, 3, 2);
+            //this.tableLayoutPanel1.Controls.Add(this.BUT_Homealt, 3, 0);
             this.tableLayoutPanel1.Controls.Add(this.BUTrestartmission, 3, 1);
-            this.tableLayoutPanel1.Controls.Add(this.CMB_mountmode, 0, 3);
+            //this.tableLayoutPanel1.Controls.Add(this.CMB_mountmode, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.BUT_quickrtl, 2, 2);
             this.tableLayoutPanel1.Controls.Add(this.BUT_quickmanual, 2, 1);
             this.tableLayoutPanel1.Controls.Add(this.BUT_setwp, 1, 1);
-            this.tableLayoutPanel1.Controls.Add(this.CMB_modes, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.CMB_modes, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.BUT_quickauto, 2, 0);
-            this.tableLayoutPanel1.Controls.Add(this.BUT_setmode, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.BUT_setmode, 1, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             // 
             // BUT_SendMSG
@@ -2496,6 +2940,7 @@ namespace MissionPlanner.GCSViews
             this.splitContainer1.Panel2.Controls.Add(this.label4);
             this.splitContainer1.Panel2.Controls.Add(this.lbl_hdop);
             this.splitContainer1.Panel2.Controls.Add(this.lbl_sats);
+            this.splitContainer1.Panel2.Controls.Add(this.lbl_sats2);
             this.splitContainer1.Panel2.Controls.Add(this.gMapControl1);
             this.splitContainer1.Panel2.Resize += new System.EventHandler(this.splitContainer1_Panel2_Resize);
             // 
@@ -2793,10 +3238,18 @@ namespace MissionPlanner.GCSViews
             // lbl_sats
             // 
             resources.ApplyResources(this.lbl_sats, "lbl_sats");
-            this.lbl_sats.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "satcount", true, System.Windows.Forms.DataSourceUpdateMode.Never, null, "Sats: 0"));
+            this.lbl_sats.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "satcount", true, System.Windows.Forms.DataSourceUpdateMode.Never, null, "GPS1 Sats: 0"));
             this.lbl_sats.Name = "lbl_sats";
             this.lbl_sats.resize = true;
             this.toolTip1.SetToolTip(this.lbl_sats, resources.GetString("lbl_sats.ToolTip"));
+            // 
+            // lbl_sats2
+            // 
+            resources.ApplyResources(this.lbl_sats2, "lbl_sats2");
+            this.lbl_sats2.DataBindings.Add(new System.Windows.Forms.Binding("Text", this.bindingSource1, "satcount2", true, System.Windows.Forms.DataSourceUpdateMode.Never, null, "GPS2 Sats: 0"));
+            this.lbl_sats2.Name = "lbl_sats2";
+            this.lbl_sats2.resize = true;
+            this.toolTip1.SetToolTip(this.lbl_sats2, resources.GetString("lbl_sats2.ToolTip"));
             // 
             // gMapControl1
             // 
@@ -3009,6 +3462,7 @@ namespace MissionPlanner.GCSViews
         public System.Windows.Forms.TabPage tabGauges;
         public System.Windows.Forms.TabPage tabStatus;
         public System.Windows.Forms.TabPage tabActions;
+        public System.Windows.Forms.TabPage tabModes;
         public System.Windows.Forms.TabPage tabTLogs;
         private System.Windows.Forms.ComboBox CMB_modes;
         private Controls.MyButton BUT_setmode;
@@ -3025,6 +3479,7 @@ namespace MissionPlanner.GCSViews
         private System.Windows.Forms.SplitContainer splitContainer1;
         private Controls.MyLabel lbl_hdop;
         private Controls.MyLabel lbl_sats;
+        private Controls.MyLabel lbl_sats2;
         private Controls.HSI Gheading;
         private Label lbl_playbackspeed;
         private System.Windows.Forms.ToolStripMenuItem setAspectRatioToolStripMenuItem;
@@ -3164,6 +3619,39 @@ namespace MissionPlanner.GCSViews
         private System.Windows.Forms.ToolStripMenuItem flyToCoordsToolStripMenuItem;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelModes;
+        private System.Windows.Forms.GroupBox groupBoxLoiter;
+        private System.Windows.Forms.Label labelLoiterSpeed;
+        private System.Windows.Forms.Label labelLoiterClimbSpeed;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelLoiterSpeed;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelLoiterClimbSpeed;
+        private System.Windows.Forms.GroupBox groupBoxCircle;
+        private System.Windows.Forms.Label labelCircleRadius;
+        private System.Windows.Forms.Label labelCircleRate;
+        private Controls.ModifyandSet modifyandSetCircleRadius;
+        private Controls.ModifyandSet modifyandSetCircleRate;
+        private System.Windows.Forms.GroupBox groupBoxAuto;
+        private Controls.ModifyandSet modifyandSetWPRadius;
+        private System.Windows.Forms.Label labelWPSpeed;
+        private System.Windows.Forms.Label labelWPSpeedClimb;
+        private System.Windows.Forms.Label labelWPRadius;
+        private System.Windows.Forms.Label labelWPRadiusButtons;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelWPSpeed;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelWPSpeedClimb;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelWPRadius;
+        private System.Windows.Forms.GroupBox groupBoxRTL;
+        private Controls.ModifyandSet modifyandSetRTLAlt;
+        private System.Windows.Forms.Label labelRTLAlt;
+        private System.Windows.Forms.Label labelRTLSpeed;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelRTLAlt;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelRTLSpeed;
+        private Controls.ModifyandSet modifyandSetRTLSpeed;
+        private Controls.MyButton buttonRCToggle;
+        private System.Windows.Forms.Panel panelModesScroll;
+        private Controls.ModifyandSet modifyandSetLoiterSpeed;
+        private Controls.ModifyandSet modifyandSetLoiterClimbSpeed;
+        private Controls.ModifyandSet modifyandSetWPSpeed;
+        private Controls.ModifyandSet modifyandSetWPSpeedClimb;
         private System.Windows.Forms.ToolStripMenuItem setBatteryCellCountToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem undockToolStripMenuItem;
         private System.Windows.Forms.Button ALT_btn;

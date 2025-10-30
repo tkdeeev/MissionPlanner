@@ -261,6 +261,9 @@ namespace MissionPlanner.GCSViews
             // populate the unmodified base list
             tabControlactions.TabPages.ForEach(i => { TabListOriginal.Add((TabPage) i); });
 
+            // Initialize Modes tab buttons
+            InitializeModesTab();
+
             //  mymap.Manager.UseMemoryCache = false;
 
             log.Info("Tunning Graph Settings");
@@ -342,7 +345,14 @@ namespace MissionPlanner.GCSViews
 
             CMB_action.DataSource = Enum.GetNames(typeof(actions));
 
-            CMB_modes.DataSource = ArduPilot.Common.getModesList(MainV2.comPort.MAV.cs.firmware);
+            // Keep first 9 modes and remove Acro (if at position 1)
+            var modes = ArduPilot.Common.getModesList(MainV2.comPort.MAV.cs.firmware).Take(9).ToList();
+            
+            if (modes.Count > 1 && modes[1].Value == "Acro")
+            {
+                modes.RemoveAt(1);
+            }
+            CMB_modes.DataSource = modes;
             CMB_modes.ValueMember = "Key";
             CMB_modes.DisplayMember = "Value";
 
@@ -2483,7 +2493,14 @@ namespace MissionPlanner.GCSViews
         private void CMB_modes_Click(object sender, EventArgs e)
         {
             string current_value = CMB_modes.Text;
-            CMB_modes.DataSource = ArduPilot.Common.getModesList(MainV2.comPort.MAV.cs.firmware);
+            
+            // Keep first 9 modes and remove Acro (if at position 1)
+            var modes = ArduPilot.Common.getModesList(MainV2.comPort.MAV.cs.firmware).Take(9).ToList();
+            if (modes.Count > 1 && modes[1].Value == "Acro")
+            {
+                modes.RemoveAt(1);
+            }
+            CMB_modes.DataSource = modes;
             CMB_modes.ValueMember = "Key";
             CMB_modes.DisplayMember = "Value";
             CMB_modes.Text = current_value;
@@ -4375,6 +4392,500 @@ namespace MissionPlanner.GCSViews
 
         private void modifyandSetSpeed_ParentChanged(object sender, EventArgs e)
         {
+        }
+
+        // Array of LOITER speed values (easily configurable)
+        private readonly float[] loiterSpeedValues = new float[] { 5f, 10f, 15f, 20f, 25f, 30f }; // m/s
+
+        // Array of LOITER max climb speed values
+        private readonly float[] loiterClimbSpeedValues = new float[] { 1f, 2f, 3f, 4f }; // m/s
+
+        // Array of WP Speed values
+        private readonly float[] wpSpeedValues = new float[] { 5f, 10f, 15f, 20f, 25f, 30f }; // m/s
+
+        // Array of WP Speed Climb values
+        private readonly float[] wpSpeedClimbValues = new float[] { 1f, 2f, 3f, 4f, 5f }; // m/s
+
+        // Array of WP Radius values
+        private readonly float[] wpRadiusValues = new float[] { 5f, 10f, 20f, 50f, 100f }; // m
+
+        // Array of RTL Alt values
+        private readonly float[] rtlAltValues = new float[] { 10f, 20f, 50f, 100f, 150f }; // m
+
+        // Array of RTL Speed values
+        private readonly float[] rtlSpeedValues = new float[] { 5f, 10f, 15f, 20f, 25f, 30f }; // m/s
+
+        private bool rcOverrideEnabled = false;
+
+        private void InitializeModesTab()
+        {
+            // Clear any existing buttons
+            flowLayoutPanelLoiterSpeed.Controls.Clear();
+            flowLayoutPanelLoiterClimbSpeed.Controls.Clear();
+            flowLayoutPanelWPSpeed.Controls.Clear();
+            flowLayoutPanelWPSpeedClimb.Controls.Clear();
+            flowLayoutPanelWPRadius.Controls.Clear();
+            flowLayoutPanelRTLAlt.Controls.Clear();
+            flowLayoutPanelRTLSpeed.Controls.Clear();
+
+            // Create buttons for LOITER speed
+            foreach (float speed in loiterSpeedValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{speed} m/s",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = speed
+                };
+                button.Click += LoiterSpeedButton_Click;
+                flowLayoutPanelLoiterSpeed.Controls.Add(button);
+            }
+
+            // Create buttons for LOITER max climb speed
+            foreach (float climbSpeed in loiterClimbSpeedValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{climbSpeed} m/s",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = climbSpeed
+                };
+                button.Click += LoiterClimbSpeedButton_Click;
+                flowLayoutPanelLoiterClimbSpeed.Controls.Add(button);
+            }
+
+            // Create buttons for WP Speed
+            foreach (float speed in wpSpeedValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{speed} m/s",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = speed
+                };
+                button.Click += WPSpeedButton_Click;
+                flowLayoutPanelWPSpeed.Controls.Add(button);
+            }
+
+            // Create buttons for WP Speed Climb
+            foreach (float climbSpeed in wpSpeedClimbValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{climbSpeed} m/s",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = climbSpeed
+                };
+                button.Click += WPSpeedClimbButton_Click;
+                flowLayoutPanelWPSpeedClimb.Controls.Add(button);
+            }
+
+            // Create buttons for WP Radius
+            foreach (float radius in wpRadiusValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{radius} m",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = radius
+                };
+                button.Click += WPRadiusButton_Click;
+                flowLayoutPanelWPRadius.Controls.Add(button);
+            }
+
+            // Create buttons for RTL Alt
+            foreach (float alt in rtlAltValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{alt} m",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = alt
+                };
+                button.Click += RTLAltButton_Click;
+                flowLayoutPanelRTLAlt.Controls.Add(button);
+            }
+
+            // Create buttons for RTL Speed
+            foreach (float speed in rtlSpeedValues)
+            {
+                var button = new Controls.MyButton
+                {
+                    Text = $"{speed} m/s",
+                    Size = new System.Drawing.Size(50, 23),
+                    Margin = new Padding(2),
+                    Tag = speed
+                };
+                button.Click += RTLSpeedButton_Click;
+                flowLayoutPanelRTLSpeed.Controls.Add(button);
+            }
+
+            // Initialize RC toggle button
+            UpdateRCToggleButton();
+
+            // Ensure RC button stays in top-right corner
+            if (tabModes != null && buttonRCToggle != null)
+            {
+                tabModes.Resize += TabModes_Resize;
+                UpdateRCPosition();
+            }
+        }
+
+        private void TabModes_Resize(object sender, EventArgs e)
+        {
+            UpdateRCPosition();
+        }
+
+        private void UpdateRCPosition()
+        {
+            if (tabModes != null && buttonRCToggle != null)
+            {
+                buttonRCToggle.Location = new System.Drawing.Point(tabModes.Width - buttonRCToggle.Width - 10, 3);
+            }
+        }
+
+        private void LoiterSpeedButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float speed)
+            {
+                try
+                {
+                    // Convert m/s to cm/s (ArduPilot parameters are typically in cm/s)
+                    float speedCmPerSec = speed * 100f;
+                    MainV2.comPort.setParam("LOIT_SPEED", speedCmPerSec);
+                    CustomMessageBox.Show($"LOITER speed set to {speed} m/s", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting LOITER speed: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void LoiterClimbSpeedButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float climbSpeed)
+            {
+                try
+                {
+                    // Convert m/s to cm/s (ArduPilot parameters are typically in cm/s)
+                    float climbSpeedCmPerSec = climbSpeed * 100f;
+                    MainV2.comPort.setParam("PILOT_SPEED_UP", climbSpeedCmPerSec);
+                    CustomMessageBox.Show($"LOITER max climb speed set to {climbSpeed} m/s", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting LOITER climb speed: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void modifyandSetCircleRadius_Click(object sender, EventArgs e)
+        {
+            float newRadius = (float)modifyandSetCircleRadius.Value;
+            try
+            {
+                // Convert m to cm (LOITER_RAD is in cm)
+                float radiusCm = newRadius * 100f / (float)CurrentState.multiplierdist;
+                MainV2.comPort.setParam("CIRCLE_RADIUS", radiusCm);
+                CustomMessageBox.Show($"Circle radius set to {newRadius} m", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting Circle radius: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetCircleRate_Click(object sender, EventArgs e)
+        {
+            float newRate = (float)modifyandSetCircleRate.Value;
+            try
+            {
+                MainV2.comPort.setParam("CIRCLE_RATE", newRate);
+                CustomMessageBox.Show($"Circle rate set to {newRate} deg/s", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting Circle rate: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetWPRadius_Click(object sender, EventArgs e)
+        {
+            float newRadius = (float)modifyandSetWPRadius.Value;
+            try
+            {
+                // Convert m to cm (WPNAV_RADIUS is in cm)
+                float radiusCm = newRadius * 100f / (float)CurrentState.multiplierdist;
+                MainV2.comPort.setParam("WPNAV_RADIUS", radiusCm);
+                CustomMessageBox.Show($"WP radius set to {newRadius} m", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting WP radius: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void WPSpeedButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float speed)
+            {
+                try
+                {
+                    // Convert m/s to cm/s
+                    float speedCmPerSec = speed * 100f;
+                    MainV2.comPort.setParam("WPNAV_SPEED", speedCmPerSec);
+                    CustomMessageBox.Show($"WP speed set to {speed} m/s", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting WP speed: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void WPSpeedClimbButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float climbSpeed)
+            {
+                try
+                {
+                    // Convert m/s to cm/s
+                    float climbSpeedCmPerSec = climbSpeed * 100f;
+                    MainV2.comPort.setParam("WPNAV_SPEED_UP", climbSpeedCmPerSec);
+                    MainV2.comPort.setParam("WPNAV_SPEED_DN", climbSpeedCmPerSec);
+                    CustomMessageBox.Show($"WP climb speed set to {climbSpeed} m/s", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting WP climb speed: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void WPRadiusButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float radius)
+            {
+                try
+                {
+                    // Convert m to cm
+                    float radiusCm = radius * 100f / (float)CurrentState.multiplierdist;
+                    MainV2.comPort.setParam("WPNAV_RADIUS", radiusCm);
+                    modifyandSetWPRadius.Value = (decimal)radius; // Update the input field
+                    CustomMessageBox.Show($"WP radius set to {radius} m", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting WP radius: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void modifyandSetLoiterSpeed_Click(object sender, EventArgs e)
+        {
+            float newSpeed = (float)modifyandSetLoiterSpeed.Value;
+            try
+            {
+                // Convert m/s to cm/s (LOIT_SPEED is in cm/s)
+                float speedCmPerSec = newSpeed * 100f;
+                MainV2.comPort.setParam("LOIT_SPEED", speedCmPerSec);
+                CustomMessageBox.Show($"LOITER speed set to {newSpeed} m/s", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting LOITER speed: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetLoiterClimbSpeed_Click(object sender, EventArgs e)
+        {
+            float newClimbSpeed = (float)modifyandSetLoiterClimbSpeed.Value;
+            try
+            {
+                // Convert m/s to cm/s (PILOT_SPEED_UP is in cm/s)
+                float climbSpeedCmPerSec = newClimbSpeed * 100f;
+                MainV2.comPort.setParam("PILOT_SPEED_UP", climbSpeedCmPerSec);
+                CustomMessageBox.Show($"LOITER climb speed set to {newClimbSpeed} m/s", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting LOITER climb speed: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetWPSpeed_Click(object sender, EventArgs e)
+        {
+            float newSpeed = (float)modifyandSetWPSpeed.Value;
+            try
+            {
+                // Convert m/s to cm/s (WPNAV_SPEED is in cm/s)
+                float speedCmPerSec = newSpeed * 100f;
+                MainV2.comPort.setParam("WPNAV_SPEED", speedCmPerSec);
+                CustomMessageBox.Show($"WP speed set to {newSpeed} m/s", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting WP speed: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetWPSpeedClimb_Click(object sender, EventArgs e)
+        {
+            float newClimbSpeed = (float)modifyandSetWPSpeedClimb.Value;
+            try
+            {
+                // Convert m/s to cm/s (WPNAV_SPEED_UP is in cm/s)
+                float climbSpeedCmPerSec = newClimbSpeed * 100f;
+                MainV2.comPort.setParam("WPNAV_SPEED_UP", climbSpeedCmPerSec);
+                MainV2.comPort.setParam("WPNAV_SPEED_DN", climbSpeedCmPerSec);
+                CustomMessageBox.Show($"WP climb speed set to {newClimbSpeed} m/s", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting WP climb speed: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetRTLSpeed_Click(object sender, EventArgs e)
+        {
+            float newSpeed = (float)modifyandSetRTLSpeed.Value;
+            try
+            {
+                // Convert m/s to cm/s (RTL_SPEED is in cm/s)
+                float speedCmPerSec = newSpeed * 100f;
+                MainV2.comPort.setParam("RTL_SPEED", speedCmPerSec);
+                CustomMessageBox.Show($"RTL speed set to {newSpeed} m/s", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting RTL speed: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void modifyandSetRTLAlt_Click(object sender, EventArgs e)
+        {
+            float newAlt = (float)modifyandSetRTLAlt.Value;
+            try
+            {
+                // Convert m to cm (RTL_ALT is in cm)
+                float altCm = newAlt * 100f / (float)CurrentState.multiplieralt;
+                MainV2.comPort.setParam("RTL_ALT", altCm);
+                CustomMessageBox.Show($"RTL altitude set to {newAlt} m", "Success");
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error setting RTL altitude: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void RTLAltButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float alt)
+            {
+                try
+                {
+                    // Convert m to cm
+                    float altCm = alt * 100f / (float)CurrentState.multiplieralt;
+                    MainV2.comPort.setParam("RTL_ALT", altCm);
+                    modifyandSetRTLAlt.Value = (decimal)alt; // Update the input field
+                    CustomMessageBox.Show($"RTL altitude set to {alt} m", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting RTL altitude: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void RTLSpeedButton_Click(object sender, EventArgs e)
+        {
+            if (sender is Controls.MyButton button && button.Tag is float speed)
+            {
+                try
+                {
+                    // Convert m/s to cm/s
+                    float speedCmPerSec = speed * 100f;
+                    MainV2.comPort.setParam("RTL_SPEED", speedCmPerSec);
+                    CustomMessageBox.Show($"RTL speed set to {speed} m/s", "Success");
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show($"Error setting RTL speed: {ex.Message}", "ERROR");
+                }
+            }
+        }
+
+        private void buttonRCToggle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Read current RC_OPTIONS; if missing, assume 0
+                uint rcOptions = 0;
+                if (MainV2.comPort.MAV.param.ContainsKey("RC_OPTIONS") && MainV2.comPort.MAV.param["RC_OPTIONS"].Value != null)
+                {
+                    rcOptions = (uint)Convert.ToInt32(MainV2.comPort.MAV.param["RC_OPTIONS"].Value);
+                }
+
+                // Bit 0 = Ignore RC Receiver
+                bool ignoreRcReceiverCurrently = (rcOptions & 0x1u) != 0;
+                bool newIgnoreState = !ignoreRcReceiverCurrently; // toggle
+
+                uint newValue = newIgnoreState ? (rcOptions | 0x1u) : (rcOptions & ~0x1u);
+
+                // Write back parameter
+                MainV2.comPort.setParam("RC_OPTIONS", newValue);
+
+                // If we're enabling ignore, also clear any local RC overrides/joystick to avoid confusion
+                if (newIgnoreState)
+                {
+                    if (MainV2.joystick != null)
+                        MainV2.joystick.clearRCOverride();
+                    MainV2.comPort.SendRCOverride(MainV2.comPort.MAV.sysid, MainV2.comPort.MAV.compid, 0, 0, 0, 0, 0, 0, 0, 0);
+                    CustomMessageBox.Show("'Ignore RC Receiver' enabled (RC_OPTIONS bit 0 set)", "Success");
+                }
+                else
+                {
+                    CustomMessageBox.Show("'Ignore RC Receiver' disabled (RC_OPTIONS bit 0 cleared)", "Success");
+                }
+
+                UpdateRCToggleButton();
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error toggling 'Ignore RC Receiver': {ex.Message}", "ERROR");
+            }
+        }
+
+        private void UpdateRCToggleButton()
+        {
+            // Reflect current RC_OPTIONS bit 0 (Ignore RC Receiver)
+            try
+            {
+                uint rcOptions = 0;
+                if (MainV2.comPort.MAV.param.ContainsKey("RC_OPTIONS") && MainV2.comPort.MAV.param["RC_OPTIONS"].Value != null)
+                {
+                    rcOptions = (uint)Convert.ToInt32(MainV2.comPort.MAV.param["RC_OPTIONS"].Value);
+                }
+                bool ignoreRcReceiver = (rcOptions & 0x1u) != 0;
+
+                // Update local state and button UI
+                rcOverrideEnabled = ignoreRcReceiver;
+                buttonRCToggle.Text = ignoreRcReceiver ? "Enable RC" : "Disable RC";
+                buttonRCToggle.BackColor = ignoreRcReceiver ? System.Drawing.Color.Green : System.Drawing.SystemColors.Control;
+            }
+            catch
+            {
+                // Fallback to previous behaviour if parameter not available
+                buttonRCToggle.Text = rcOverrideEnabled ? "Enable RC" : "Disable RC";
+                buttonRCToggle.BackColor = rcOverrideEnabled ? System.Drawing.Color.Green : System.Drawing.SystemColors.Control;
+            }
         }
 
         void mymap_Paint(object sender, PaintEventArgs e)

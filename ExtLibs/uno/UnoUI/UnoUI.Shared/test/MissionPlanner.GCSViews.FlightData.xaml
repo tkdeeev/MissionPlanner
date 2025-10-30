@@ -35,7 +35,8 @@ mc:Ignorable="d"
 <TextBlock Name="label3" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Microsoft Sans Serif" FontSize="8.25" Margin="135,388,0,0" Width="106" Height="17">Direct to current WP</TextBlock>
 <TextBlock Name="label4" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Microsoft Sans Serif" FontSize="8.25" Margin="45,388,0,0" Width="87" Height="17">Current Heading</TextBlock>
 <TextBlock Name="lbl_hdop" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Microsoft Sans Serif" FontSize="8.25" Margin="-1,370,0,0" Width="43" Height="12">hdop: 0</TextBlock>
-<TextBlock Name="lbl_sats" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Microsoft Sans Serif" FontSize="8.25" Margin="-1,389,0,0" Width="40" Height="12">Sats: 0</TextBlock>
+<TextBlock Name="lbl_sats" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Microsoft Sans Serif" FontSize="8.25" Margin="-1,389,0,0" Width="40" Height="12">GPS1 Sats: 0</TextBlock>
+<TextBlock Name="lbl_sats2" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Microsoft Sans Serif" FontSize="8.25" Margin="-1,408,0,0" Width="40" Height="12">GPS2 Sats: 0</TextBlock>
 <Slider Name="TRK_zoom" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="589,0,0,0" Width="45" Height="418" Orientation="Vertical"></Slider>
 </Grid>
 </Grid>

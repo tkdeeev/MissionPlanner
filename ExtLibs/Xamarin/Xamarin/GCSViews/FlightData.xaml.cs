@@ -185,8 +185,8 @@ namespace Xamarin
             hud1.speedunit = CurrentState.SpeedUnit;
             hud1.distunit = CurrentState.DistanceUnit;
 
-            Mode.Items.AddRange(MissionPlanner.ArduPilot.Common.getModesList(MainV2.comPort.MAV.cs.firmware)
-                .Select(a => a.Value));
+            Mode.Items.AddRange(MissionPlanner.ArduPilot.Common.getModesList(MainV2.comPort.MAV.cs.firmware).ToList()
+                .Select(a => a.Value).ToList());
 
             CheckBatteryShow();
 

@@ -1383,6 +1383,60 @@
   <data name="tabActions.Text" xml:space="preserve">
     <value>Actions</value>
   </data>
+  <data name="tabModes.Text" xml:space="preserve">
+    <value>Modes</value>
+  </data>
+  <data name="labelLoiterSpeed.Text" xml:space="preserve">
+    <value>Speed:</value>
+  </data>
+  <data name="labelLoiterClimbSpeed.Text" xml:space="preserve">
+    <value>Climb Speed:</value>
+  </data>
+  <data name="groupBoxLoiter.Text" xml:space="preserve">
+    <value>Loiter</value>
+  </data>
+  <data name="groupBoxCircle.Text" xml:space="preserve">
+    <value>Circle</value>
+  </data>
+  <data name="groupBoxAuto.Text" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="groupBoxRTL.Text" xml:space="preserve">
+    <value>RTL</value>
+  </data>
+  <data name="groupBoxRC.Text" xml:space="preserve">
+    <value>RC Override</value>
+  </data>
+  <data name="buttonRCToggle.Text" xml:space="preserve">
+    <value>Enable RC</value>
+  </data>
+  <data name="labelWPSpeed.Text" xml:space="preserve">
+    <value>Speed:</value>
+  </data>
+  <data name="labelWPSpeedClimb.Text" xml:space="preserve">
+    <value>Climb Speed:</value>
+  </data>
+  <data name="labelWPRadiusButtons.Text" xml:space="preserve">
+    <value>WP Radius (buttons):</value>
+  </data>
+  <data name="labelRTLAltButtons.Text" xml:space="preserve">
+    <value>RTL Alt (buttons):</value>
+  </data>
+  <data name="labelCircleRadius.Text" xml:space="preserve">
+    <value>Radius:</value>
+  </data>
+  <data name="labelCircleRate.Text" xml:space="preserve">
+    <value>Rate:</value>
+  </data>
+  <data name="labelWPRadius.Text" xml:space="preserve">
+    <value>Radius:</value>
+  </data>
+  <data name="labelRTLAlt.Text" xml:space="preserve">
+    <value>Alt:</value>
+  </data>
+  <data name="labelRTLSpeed.Text" xml:space="preserve">
+    <value>Speed:</value>
+  </data>
   <data name="&gt;&gt;tabActions.Name" xml:space="preserve">
     <value>tabActions</value>
   </data>
@@ -5798,7 +5852,7 @@
     <value>NoControl</value>
   </data>
   <data name="lbl_hdop.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-1, 149</value>
+    <value>-1, 168</value>
   </data>
   <data name="lbl_hdop.Size" type="System.Drawing.Size, System.Drawing">
     <value>43, 12</value>
@@ -5831,7 +5885,7 @@
     <value>NoControl</value>
   </data>
   <data name="lbl_sats.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-1, 168</value>
+    <value>-1, 130</value>
   </data>
   <data name="lbl_sats.Size" type="System.Drawing.Size, System.Drawing">
     <value>40, 12</value>
@@ -5840,10 +5894,10 @@
     <value>71</value>
   </data>
   <data name="lbl_sats.Text" xml:space="preserve">
-    <value>Sats: 0</value>
+    <value>GPS1 Sats: 0</value>
   </data>
   <data name="lbl_sats.ToolTip" xml:space="preserve">
-    <value>Satallite Count</value>
+    <value>Satallite Count for GPS1</value>
   </data>
   <data name="&gt;&gt;lbl_sats.Name" xml:space="preserve">
     <value>lbl_sats</value>
@@ -5856,6 +5910,39 @@
   </data>
   <data name="&gt;&gt;lbl_sats.ZOrder" xml:space="preserve">
     <value>11</value>
+  </data>
+  <data name="lbl_sats2.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left</value>
+  </data>
+  <data name="lbl_sats2.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="lbl_sats2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>-1, 149</value>
+  </data>
+  <data name="lbl_sats2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>40, 12</value>
+  </data>
+  <data name="lbl_sats2.TabIndex" type="System.Int32, mscorlib">
+    <value>72</value>
+  </data>
+  <data name="lbl_sats2.Text" xml:space="preserve">
+    <value>GPS2 Sats: 0</value>
+  </data>
+  <data name="lbl_sats2.ToolTip" xml:space="preserve">
+    <value>Satallite Count for GPS2</value>
+  </data>
+  <data name="&gt;&gt;lbl_sats2.Name" xml:space="preserve">
+    <value>lbl_sats2</value>
+  </data>
+  <data name="&gt;&gt;lbl_sats2.Type" xml:space="preserve">
+    <value>MissionPlanner.Controls.MyLabel, MissionPlanner.Controls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</value>
+  </data>
+  <data name="&gt;&gt;lbl_sats2.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;lbl_sats2.ZOrder" xml:space="preserve">
+    <value>12</value>
   </data>
   <data name="gMapControl1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
