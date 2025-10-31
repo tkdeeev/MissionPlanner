@@ -355,6 +355,63 @@ namespace MissionPlanner
         }
 
         [GroupText("Position")]
+        [DisplayFieldName("barometer_altitude.Field")]
+        [DisplayText("Barometer Altitude (alt)")]
+        public float barometer_altitude
+        {
+            get
+            {
+                if (press_abs <= 0)
+                    return 0;
+
+                float base_pressure = 101325.0f; // Default sea level pressure in Pa
+                float ground_temp = 15.0f; // Default ground temperature in Celsius
+
+                // Try to get ground pressure and temperature from parameters
+                try
+                {
+                    if (parent != null && parent.parent != null && parent.parent.MAV != null && parent.parent.MAV.param != null)
+                    {
+                        if (parent.parent.MAV.param.ContainsKey("GND_ABS_PRESS"))
+                            base_pressure = (float)parent.parent.MAV.param["GND_ABS_PRESS"].Value;
+                        else if (parent.parent.MAV.param.ContainsKey("BARO1_GND_PRESS"))
+                            base_pressure = (float)parent.parent.MAV.param["BARO1_GND_PRESS"].Value;
+
+                        if (parent.parent.MAV.param.ContainsKey("GND_TEMP"))
+                            ground_temp = (float)parent.parent.MAV.param["GND_TEMP"].Value;
+                        else if (parent.parent.MAV.param.ContainsKey("BARO_GND_TEMP"))
+                            ground_temp = (float)parent.parent.MAV.param["BARO_GND_TEMP"].Value;
+                    }
+                }
+                catch
+                {
+                    // Use defaults if parameter access fails
+                }
+
+                // Convert pressure from hPa to Pa if needed (press_abs is in hPa)
+                float pressure = press_abs * 100.0f;
+
+                // Calculate scaling ratio
+                float scaling = pressure / base_pressure;
+
+                // Convert ground temperature to Kelvin
+                const float C_TO_KELVIN = 273.15f;
+                float temp_K = ground_temp + C_TO_KELVIN;
+
+                // Calculate altitude using the provided formula
+                // ret = 153.8462 * temp_K * (1.0 - exp(0.190259 * log(scaling)))
+                float ret = 153.8462f * temp_K * (1.0f - (float)Math.Exp(0.190259f * (float)Math.Log(scaling)));
+
+                return ret * multiplieralt;
+            }
+        }
+
+        [GroupText("Position")]
+        [DisplayFieldName("gps_altitude.Field")]
+        [DisplayText("GPS Altitude (alt)")]
+        public float gps_altitude => altasl;
+
+        [GroupText("Position")]
         [DisplayFieldName("horizondist.Field")]
         [DisplayText("Horizon Dist (dist)")]
         public float horizondist => (float)(3570 * Math.Sqrt(alt)) * multiplierdist;

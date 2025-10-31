@@ -130,6 +130,33 @@ namespace MissionPlanner.GCSViews
         private bool polygongridmode;
         private MissionPlanner.Controls.Icon.Polygon polyicon = new MissionPlanner.Controls.Icon.Polygon();
         private MissionPlanner.Controls.Icon.Zoom zoomicon = new MissionPlanner.Controls.Icon.Zoom();
+        private MissionPlanner.Controls.Icon.PenIcon penicon = new MissionPlanner.Controls.Icon.PenIcon();
+        
+        // Annotation tool state
+        private bool annotationMode = false;
+        private MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType currentAnnotationTool = MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle;
+        private Color currentAnnotationColor = Color.Red;
+        private MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType currentLineStyle = MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Solid;
+        
+        // Annotation toolbar icons
+        private List<MissionPlanner.Controls.Icon.AnnotationToolIcon> toolIcons = new List<MissionPlanner.Controls.Icon.AnnotationToolIcon>();
+        private List<MissionPlanner.Controls.Icon.ColorIcon> colorIcons = new List<MissionPlanner.Controls.Icon.ColorIcon>();
+        private List<MissionPlanner.Controls.Icon.LineStyleIcon> styleIcons = new List<MissionPlanner.Controls.Icon.LineStyleIcon>();
+        private List<MissionPlanner.Controls.Icon.FillIcon> fillIcons = new List<MissionPlanner.Controls.Icon.FillIcon>();
+        private MissionPlanner.Controls.Icon.FinishPolygonIcon finishPolygonIcon = new MissionPlanner.Controls.Icon.FinishPolygonIcon();
+        private MissionPlanner.Controls.Icon.EraserIcon eraserIcon = new MissionPlanner.Controls.Icon.EraserIcon();
+        private MissionPlanner.Controls.Icon.RemoveAllIcon removeAllIcon = new MissionPlanner.Controls.Icon.RemoveAllIcon();
+        
+        // Fill state
+        private MissionPlanner.Controls.Icon.FillIcon.FillType currentFillType = MissionPlanner.Controls.Icon.FillIcon.FillType.NoFill;
+        private bool eraserMode = false;
+        // Separate overlays for each map (like waypoints)
+        public GMapOverlay annotationsoverlay;
+        public static GMapOverlay annotationsoverlayFlightData;
+        private List<PointLatLng> currentPenPoints = new List<PointLatLng>();
+        private List<PointLatLng> currentPolygonPoints = new List<PointLatLng>();
+        private PointLatLng annotationStartPoint;
+        private bool isDrawingAnnotation = false;
         private ComponentResourceManager rm = new ComponentResourceManager(typeof(FlightPlanner));
         private int selectedrow;
         private bool sethome;
@@ -210,6 +237,16 @@ namespace MissionPlanner.GCSViews
 
             drawnpolygonsoverlay = new GMapOverlay("drawnpolygons");
             MainMap.Overlays.Add(drawnpolygonsoverlay);
+
+            // Create annotations overlay for FlightPlanner (separate overlay per map, like waypoints)
+            annotationsoverlay = new GMapOverlay("annotations");
+            MainMap.Overlays.Add(annotationsoverlay);
+            
+            // Initialize FlightData overlay if it exists
+            AddAnnotationsOverlayToFlightData();
+
+            // Initialize annotation toolbar icons
+            InitializeAnnotationToolbar();
 
             MainMap.Overlays.Add(poioverlay);
 
@@ -1754,6 +1791,654 @@ namespace MissionPlanner.GCSViews
             redrawPolygonSurvey(drawnpolygon.Points.Select(a => new PointLatLngAlt(a)).ToList());
 
             MainMap.Invalidate();
+        }
+
+        private void AddAnnotationsOverlayToFlightData()
+        {
+            // Create separate annotations overlay for FlightData map (like waypoints)
+            if (FlightData.mymap != null)
+            {
+                try
+                {
+                    // Remove if already added (in case of re-initialization)
+                    var existingOverlay = FlightData.mymap.Overlays.FirstOrDefault(o => o.Id == "annotations");
+                    if (existingOverlay != null)
+                    {
+                        FlightData.mymap.Overlays.Remove(existingOverlay);
+                    }
+                    
+                    // Create new overlay for FlightData
+                    if (annotationsoverlayFlightData == null)
+                    {
+                        annotationsoverlayFlightData = new GMapOverlay("annotations");
+                    }
+                    
+                    // Add overlay if not already present
+                    if (!FlightData.mymap.Overlays.Contains(annotationsoverlayFlightData))
+                    {
+                        FlightData.mymap.Overlays.Add(annotationsoverlayFlightData);
+                        FlightData.mymap.Invalidate();
+                    }
+                    
+                    // Sync annotations from FlightPlanner to FlightData
+                    SyncAnnotationsToFlightData();
+                }
+                catch
+                {
+                    // If FlightData map is not ready, ignore
+                }
+            }
+        }
+        
+        private void SyncAnnotationsToFlightData()
+        {
+            // Sync all annotations from FlightPlanner overlay to FlightData overlay
+            if (annotationsoverlayFlightData == null || annotationsoverlay == null)
+                return;
+            
+            // Clear FlightData overlay
+            annotationsoverlayFlightData.Polygons.Clear();
+            annotationsoverlayFlightData.Routes.Clear();
+            
+            // Copy polygons (rectangles, circles, polygons)
+            foreach (var polygon in annotationsoverlay.Polygons)
+            {
+                // Skip preview polygons
+                if (polygon.Tag?.ToString() == "preview")
+                    continue;
+                    
+                var newPolygon = new GMapPolygon(new List<PointLatLng>(polygon.Points), polygon.Name);
+                newPolygon.Stroke = polygon.Stroke;
+                newPolygon.Fill = polygon.Fill;
+                newPolygon.Tag = polygon.Tag;
+                annotationsoverlayFlightData.Polygons.Add(newPolygon);
+            }
+            
+            // Copy routes (pen drawings)
+            foreach (var route in annotationsoverlay.Routes)
+            {
+                // Skip preview routes
+                if (route.Tag?.ToString() == "preview" || route.Tag?.ToString() == "polygon_preview" || 
+                    route.Tag?.ToString() == "annotation_pen_current")
+                    continue;
+                    
+                var newRoute = new GMapRoute(new List<PointLatLng>(route.Points), route.Name);
+                newRoute.Stroke = route.Stroke;
+                newRoute.Tag = route.Tag;
+                annotationsoverlayFlightData.Routes.Add(newRoute);
+            }
+        }
+
+        private void InvalidateAnnotationMaps()
+        {
+            // Invalidate both maps when annotations change
+            MainMap.Invalidate();
+            if (FlightData.mymap != null)
+            {
+                FlightData.mymap.Invalidate();
+            }
+        }
+
+        private void InitializeAnnotationToolbar()
+        {
+            // Create tool icons
+            toolIcons.Clear();
+            toolIcons.Add(new MissionPlanner.Controls.Icon.AnnotationToolIcon(MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle));
+            toolIcons.Add(new MissionPlanner.Controls.Icon.AnnotationToolIcon(MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Circle));
+            toolIcons.Add(new MissionPlanner.Controls.Icon.AnnotationToolIcon(MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon));
+            toolIcons.Add(new MissionPlanner.Controls.Icon.AnnotationToolIcon(MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Pen));
+            
+            // Select first tool by default
+            if (toolIcons.Count > 0)
+            {
+                toolIcons[0].IsSelected = true;
+                currentAnnotationTool = MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle;
+            }
+
+            // Create color icons
+            colorIcons.Clear();
+            Color[] colors = new Color[] { Color.Red, Color.Blue, Color.Green, Color.Yellow, 
+                                          Color.Orange, Color.Purple, Color.Black, Color.Pink };
+            foreach (var color in colors)
+            {
+                colorIcons.Add(new MissionPlanner.Controls.Icon.ColorIcon(color));
+            }
+            
+            // Select first color by default
+            if (colorIcons.Count > 0)
+            {
+                colorIcons[0].IsSelected = true;
+                currentAnnotationColor = colorIcons[0].IconColor;
+            }
+
+            // Create style icons
+            styleIcons.Clear();
+            styleIcons.Add(new MissionPlanner.Controls.Icon.LineStyleIcon(MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Solid));
+            styleIcons.Add(new MissionPlanner.Controls.Icon.LineStyleIcon(MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Dashed));
+            styleIcons.Add(new MissionPlanner.Controls.Icon.LineStyleIcon(MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Dots));
+            
+            // Select first style by default
+            if (styleIcons.Count > 0)
+            {
+                styleIcons[0].IsSelected = true;
+                currentLineStyle = MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Solid;
+            }
+
+            // Create fill icons
+            fillIcons.Clear();
+            fillIcons.Add(new MissionPlanner.Controls.Icon.FillIcon(MissionPlanner.Controls.Icon.FillIcon.FillType.NoFill));
+            fillIcons.Add(new MissionPlanner.Controls.Icon.FillIcon(MissionPlanner.Controls.Icon.FillIcon.FillType.LightFill));
+            fillIcons.Add(new MissionPlanner.Controls.Icon.FillIcon(MissionPlanner.Controls.Icon.FillIcon.FillType.StrongFill));
+            
+            // Select first fill by default
+            if (fillIcons.Count > 0)
+            {
+                fillIcons[0].IsSelected = true;
+                currentFillType = MissionPlanner.Controls.Icon.FillIcon.FillType.NoFill;
+            }
+        }
+
+        private void ToggleAnnotationMode()
+        {
+            annotationMode = !annotationMode;
+            penicon.IsSelected = annotationMode;
+            if (!annotationMode)
+            {
+                // Deselect all annotation tools when turning off annotation mode
+                foreach (var icon in toolIcons)
+                    icon.IsSelected = false;
+                foreach (var icon in colorIcons)
+                    icon.IsSelected = false;
+                foreach (var icon in styleIcons)
+                    icon.IsSelected = false;
+                foreach (var icon in fillIcons)
+                    icon.IsSelected = false;
+            }
+            MainMap.Invalidate();
+        }
+
+        private void HandleAnnotationMouseDown(MouseEventArgs e)
+        {
+            annotationStartPoint = MainMap.FromLocalToLatLng(e.X, e.Y);
+            isDrawingAnnotation = true;
+
+            switch (currentAnnotationTool)
+            {
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Pen:
+                    currentPenPoints.Clear();
+                    currentPenPoints.Add(annotationStartPoint);
+                    break;
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon:
+                    // Polygon points are now added in MouseUp to avoid conflicts with toolbar clicks
+                    break;
+            }
+        }
+
+        private void HandleAnnotationMouseMove(MouseEventArgs e)
+        {
+            PointLatLng currentPoint = MainMap.FromLocalToLatLng(e.X, e.Y);
+
+            switch (currentAnnotationTool)
+            {
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle:
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Circle:
+                    if (isDrawingAnnotation)
+                    {
+                        // Update preview - remove old preview if exists
+                        if (annotationsoverlay.Polygons.Count > 0 && annotationsoverlay.Polygons.Last().Tag?.ToString() == "preview")
+                        {
+                            annotationsoverlay.Polygons.RemoveAt(annotationsoverlay.Polygons.Count - 1);
+                        }
+                        DrawAnnotationPreview(annotationStartPoint, currentPoint);
+                        MainMap.Invalidate();
+                    }
+                    break;
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Pen:
+                    if (isDrawingAnnotation)
+                    {
+                        // Check if mouse button is still down (we might not get button info in MouseMove)
+                        // Add point if we're drawing
+                        currentPenPoints.Add(currentPoint);
+                        UpdatePenDrawing();
+                        MainMap.Invalidate();
+                    }
+                    break;
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon:
+                    // Show preview line from last point to current mouse position
+                    if (currentPolygonPoints.Count > 0 && annotationMode)
+                    {
+                        // Remove old preview line
+                        if (annotationsoverlay.Routes.Count > 0 && annotationsoverlay.Routes.Last().Tag?.ToString() == "polygon_preview")
+                        {
+                            annotationsoverlay.Routes.RemoveAt(annotationsoverlay.Routes.Count - 1);
+                        }
+                        // Draw temporary line from last point to current position
+                        var previewRoute = new GMapRoute(new List<PointLatLng> { currentPolygonPoints.Last(), currentPoint }, "polygon_preview");
+                        previewRoute.Stroke = CreateAnnotationPen();
+                        previewRoute.Tag = "polygon_preview";
+                        annotationsoverlay.Routes.Add(previewRoute);
+                        MainMap.Invalidate();
+                    }
+                    break;
+            }
+        }
+
+        private void HandleAnnotationMouseUp(MouseEventArgs e)
+        {
+            if (!isDrawingAnnotation) return;
+
+            PointLatLng endPoint = MainMap.FromLocalToLatLng(e.X, e.Y);
+
+            switch (currentAnnotationTool)
+            {
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle:
+                    DrawAnnotationRectangle(annotationStartPoint, endPoint);
+                    break;
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Circle:
+                    DrawAnnotationCircle(annotationStartPoint, endPoint);
+                    break;
+                case MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Pen:
+                    FinishPenDrawing();
+                    break;
+            }
+
+            // Remove preview - check all polygons to find and remove preview ones
+            for (int i = annotationsoverlay.Polygons.Count - 1; i >= 0; i--)
+            {
+                var poly = annotationsoverlay.Polygons[i];
+                if (poly.Tag?.ToString() == "preview" || poly.Name == "preview")
+                {
+                    annotationsoverlay.Polygons.RemoveAt(i);
+                }
+            }
+
+            isDrawingAnnotation = false;
+            MainMap.Invalidate();
+        }
+
+        private void DrawAnnotationPreview(PointLatLng start, PointLatLng end)
+        {
+            List<PointLatLng> points = new List<PointLatLng>();
+
+            if (currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle)
+            {
+                points.Add(start);
+                points.Add(new PointLatLng(start.Lat, end.Lng));
+                points.Add(end);
+                points.Add(new PointLatLng(end.Lat, start.Lng));
+                points.Add(start);
+            }
+            else if (currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Circle)
+            {
+                double radius = MainMap.MapProvider.Projection.GetDistance(start, end) * 1000.0; // Convert km to meters
+                int segments = 32;
+                for (int i = 0; i <= segments; i++)
+                {
+                    double angle = 2 * Math.PI * i / segments;
+                    double latOffset = radius / 111000.0 * Math.Cos(angle);
+                    double lngOffset = radius / (111000.0 * Math.Cos(start.Lat * Math.PI / 180)) * Math.Sin(angle);
+                    points.Add(new PointLatLng(start.Lat + latOffset, start.Lng + lngOffset));
+                }
+            }
+
+            if (points.Count > 0)
+            {
+                var preview = new GMapPolygon(points, "preview");
+                preview.Stroke = CreateAnnotationPen();
+                preview.Fill = CreateAnnotationFill();
+                preview.Tag = "preview";
+                annotationsoverlay.Polygons.Add(preview);
+            }
+        }
+
+        private void DrawAnnotationRectangle(PointLatLng start, PointLatLng end)
+        {
+            List<PointLatLng> points = new List<PointLatLng>
+            {
+                start,
+                new PointLatLng(start.Lat, end.Lng),
+                end,
+                new PointLatLng(end.Lat, start.Lng),
+                start // Close the rectangle
+            };
+
+            var rect = new GMapPolygon(points, "annotation_rect");
+            rect.Stroke = CreateAnnotationPen();
+            rect.Fill = CreateAnnotationFill();
+            rect.Tag = "annotation_rect"; // Also set Tag for removal
+            
+            annotationsoverlay.Polygons.Add(rect);
+            SyncAnnotationsToFlightData();
+            InvalidateAnnotationMaps();
+        }
+
+        private void DrawAnnotationCircle(PointLatLng center, PointLatLng edge)
+        {
+            double radius = MainMap.MapProvider.Projection.GetDistance(center, edge) * 1000.0; // Convert km to meters
+            int segments = 32;
+            List<PointLatLng> points = new List<PointLatLng>();
+
+            for (int i = 0; i <= segments; i++)
+            {
+                double angle = 2 * Math.PI * i / segments;
+                double latOffset = radius / 111000.0 * Math.Cos(angle);
+                double lngOffset = radius / (111000.0 * Math.Cos(center.Lat * Math.PI / 180)) * Math.Sin(angle);
+                points.Add(new PointLatLng(center.Lat + latOffset, center.Lng + lngOffset));
+            }
+
+            var circle = new GMapPolygon(points, "annotation_circle");
+            circle.Stroke = CreateAnnotationPen();
+            circle.Fill = CreateAnnotationFill();
+            circle.Tag = "annotation_circle"; // Also set Tag for removal
+            
+            annotationsoverlay.Polygons.Add(circle);
+            SyncAnnotationsToFlightData();
+            InvalidateAnnotationMaps();
+        }
+
+        private void UpdatePenDrawing()
+        {
+            if (currentPenPoints.Count < 2) return;
+
+            // Remove old pen route if exists
+            if (annotationsoverlay.Routes.Count > 0 && annotationsoverlay.Routes.Last().Tag?.ToString() == "annotation_pen_current")
+            {
+                annotationsoverlay.Routes.RemoveAt(annotationsoverlay.Routes.Count - 1);
+            }
+
+            var penRoute = new GMapRoute(currentPenPoints, "annotation_pen_current");
+            penRoute.Stroke = CreateAnnotationPen();
+            penRoute.Tag = "annotation_pen_current";
+            annotationsoverlay.Routes.Add(penRoute);
+        }
+
+        private void FinishAnnotationPolygon()
+        {
+            if (currentPolygonPoints.Count < 3)
+            {
+                // Clear points even if less than 3 to allow starting fresh
+                currentPolygonPoints.Clear();
+                MainMap.Invalidate();
+                return;
+            }
+
+            // Remove preview
+            if (annotationsoverlay.Polygons.Count > 0 && annotationsoverlay.Polygons.Last().Tag?.ToString() == "polygon_preview")
+            {
+                annotationsoverlay.Polygons.RemoveAt(annotationsoverlay.Polygons.Count - 1);
+            }
+            if (annotationsoverlay.Routes.Count > 0 && annotationsoverlay.Routes.Last().Tag?.ToString() == "polygon_preview")
+            {
+                annotationsoverlay.Routes.RemoveAt(annotationsoverlay.Routes.Count - 1);
+            }
+            
+            var polygon = new GMapPolygon(currentPolygonPoints, "annotation_polygon");
+            polygon.Stroke = CreateAnnotationPen();
+            polygon.Fill = CreateAnnotationFill();
+            polygon.Tag = "annotation_polygon"; // Also set Tag for removal
+            
+            annotationsoverlay.Polygons.Add(polygon);
+            SyncAnnotationsToFlightData();
+            InvalidateAnnotationMaps();
+            
+            // Clear points to allow creating another polygon
+            currentPolygonPoints.Clear();
+            
+            // Remove preview route if exists
+            var previewRoutes = annotationsoverlay.Routes.Where(r => r.Tag?.ToString() == "polygon_preview").ToList();
+            foreach (var route in previewRoutes)
+            {
+                annotationsoverlay.Routes.Remove(route);
+            }
+            
+            MainMap.Invalidate();
+        }
+
+        private void HandleEraserClick(MouseEventArgs e)
+        {
+            if (!annotationMode || !eraserMode) return;
+
+            PointLatLng clickedPoint = MainMap.FromLocalToLatLng(e.X, e.Y);
+
+            // Check polygons (in reverse order to delete the topmost one first)
+            for (int i = annotationsoverlay.Polygons.Count - 1; i >= 0; i--)
+            {
+                var polygon = annotationsoverlay.Polygons[i];
+                // Skip preview polygons
+                if (polygon.Tag?.ToString() == "preview" || polygon.Tag?.ToString() == "polygon_preview")
+                    continue;
+                
+                if (polygon.IsVisible)
+                {
+                    // Try IsInside first (works for filled polygons)
+                    if (polygon.IsInside(clickedPoint))
+                    {
+                        annotationsoverlay.Polygons.RemoveAt(i);
+                        SyncAnnotationsToFlightData();
+                        InvalidateAnnotationMaps();
+                        return;
+                    }
+                    
+                    // Also check if click is near any edge (for rectangles and circles without fill)
+                    // Check distance to polygon edges
+                    for (int j = 0; j < polygon.Points.Count - 1; j++)
+                    {
+                        var p1 = polygon.Points[j];
+                        var p2 = polygon.Points[j + 1];
+                        
+                        double dist = GetDistanceToLineSegment(clickedPoint, p1, p2);
+                        
+                        // If within 10 meters of an edge, consider it a hit
+                        if (dist < 10.0)
+                        {
+                            annotationsoverlay.Polygons.RemoveAt(i);
+                            InvalidateAnnotationMaps();
+                            return;
+                        }
+                    }
+                    
+                    // Check last to first point
+                    if (polygon.Points.Count > 2)
+                    {
+                        var p1 = polygon.Points[polygon.Points.Count - 1];
+                        var p2 = polygon.Points[0];
+                        double dist = GetDistanceToLineSegment(clickedPoint, p1, p2);
+                        if (dist < 10.0)
+                        {
+                            annotationsoverlay.Polygons.RemoveAt(i);
+                            InvalidateAnnotationMaps();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Check routes (in reverse order to delete the topmost one first)
+            for (int i = annotationsoverlay.Routes.Count - 1; i >= 0; i--)
+            {
+                var route = annotationsoverlay.Routes[i];
+                // Skip preview routes
+                if (route.Tag?.ToString() == "polygon_preview" || route.Tag?.ToString() == "annotation_pen_current")
+                    continue;
+                
+                if (route.IsVisible)
+                {
+                    // Check if click is near the route (within a tolerance)
+                    for (int j = 0; j < route.Points.Count - 1; j++)
+                    {
+                        var p1 = route.Points[j];
+                        var p2 = route.Points[j + 1];
+                        
+                        // Calculate distance from click point to line segment
+                        double dist = GetDistanceToLineSegment(clickedPoint, p1, p2);
+                        
+                        // If within 10 meters, consider it a hit
+                        if (dist < 10.0)
+                        {
+                            annotationsoverlay.Routes.RemoveAt(i);
+                            SyncAnnotationsToFlightData();
+                            InvalidateAnnotationMaps();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        private double GetDistanceToLineSegment(PointLatLng point, PointLatLng lineStart, PointLatLng lineEnd)
+        {
+            // Calculate the distance from a point to a line segment
+            double A = point.Lat - lineStart.Lat;
+            double B = point.Lng - lineStart.Lng;
+            double C = lineEnd.Lat - lineStart.Lat;
+            double D = lineEnd.Lng - lineStart.Lng;
+
+            double dot = A * C + B * D;
+            double lenSq = C * C + D * D;
+            double param = lenSq != 0 ? dot / lenSq : -1;
+
+            double xx, yy;
+
+            if (param < 0)
+            {
+                xx = lineStart.Lat;
+                yy = lineStart.Lng;
+            }
+            else if (param > 1)
+            {
+                xx = lineEnd.Lat;
+                yy = lineEnd.Lng;
+            }
+            else
+            {
+                xx = lineStart.Lat + param * C;
+                yy = lineStart.Lng + param * D;
+            }
+
+            double dx = point.Lat - xx;
+            double dy = point.Lng - yy;
+            
+            // Convert to meters using the map projection
+            return MainMap.MapProvider.Projection.GetDistance(new PointLatLng(xx, yy), point) * 1000.0;
+        }
+
+        private void RemoveAllAnnotations()
+        {
+            if (!annotationMode) return;
+
+            // Remove all annotation polygons (except previews)
+            // Check both Name and Tag properties since GMap.NET uses Name for constructor parameter
+            var polygonsToRemove = new List<GMapPolygon>();
+            foreach (var polygon in annotationsoverlay.Polygons)
+            {
+                string tag = polygon.Tag?.ToString() ?? "";
+                string name = polygon.Name ?? "";
+                
+                // Keep preview polygons, remove all annotation polygons
+                if (tag != "preview" && tag != "polygon_preview" && 
+                    name != "preview" && name != "polygon_preview")
+                {
+                    // Check if it's an annotation polygon by name (annotation_rect, annotation_circle, annotation_polygon)
+                    if (name == "annotation_rect" || name == "annotation_circle" || name == "annotation_polygon" ||
+                        tag == "annotation_rect" || tag == "annotation_circle" || tag == "annotation_polygon")
+                    {
+                        polygonsToRemove.Add(polygon);
+                    }
+                    // Also remove any polygon that has an annotation tag
+                    else if (tag != "" && tag.StartsWith("annotation_"))
+                    {
+                        polygonsToRemove.Add(polygon);
+                    }
+                }
+            }
+            foreach (var polygon in polygonsToRemove)
+            {
+                annotationsoverlay.Polygons.Remove(polygon);
+            }
+
+            // Remove all annotation routes (except previews)
+            var routesToRemove = new List<GMapRoute>();
+            foreach (var route in annotationsoverlay.Routes)
+            {
+                string tag = route.Tag?.ToString() ?? "";
+                string name = route.Name ?? "";
+                
+                if (tag != "polygon_preview" && tag != "annotation_pen_current" &&
+                    name != "polygon_preview" && name != "annotation_pen_current")
+                {
+                    // Check if it's an annotation route by name
+                    if (name == "annotation_pen" || name.StartsWith("annotation_"))
+                    {
+                        routesToRemove.Add(route);
+                    }
+                    else if (tag != "" && tag.StartsWith("annotation_"))
+                    {
+                        routesToRemove.Add(route);
+                    }
+                }
+            }
+            foreach (var route in routesToRemove)
+            {
+                annotationsoverlay.Routes.Remove(route);
+            }
+
+            SyncAnnotationsToFlightData();
+            InvalidateAnnotationMaps();
+        }
+
+        private void FinishPenDrawing()
+        {
+            if (currentPenPoints.Count < 2) return;
+
+            // Remove the temporary route
+            if (annotationsoverlay.Routes.Count > 0 && annotationsoverlay.Routes.Last().Tag?.ToString() == "annotation_pen_current")
+            {
+                annotationsoverlay.Routes.RemoveAt(annotationsoverlay.Routes.Count - 1);
+            }
+
+            // Create final pen route
+            var penRoute = new GMapRoute(currentPenPoints, "annotation_pen");
+            penRoute.Stroke = CreateAnnotationPen();
+            penRoute.Tag = "annotation_pen"; // Also set Tag for removal
+            
+            annotationsoverlay.Routes.Add(penRoute);
+            currentPenPoints.Clear();
+            SyncAnnotationsToFlightData();
+            InvalidateAnnotationMaps();
+        }
+
+        private System.Drawing.Pen CreateAnnotationPen()
+        {
+            System.Drawing.Pen pen = new System.Drawing.Pen(currentAnnotationColor, 2);
+            switch (currentLineStyle)
+            {
+                case MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Dashed:
+                    pen.DashStyle = DashStyle.Dash;
+                    break;
+                case MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Dots:
+                    pen.DashStyle = DashStyle.Dot;
+                    break;
+                case MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Solid:
+                default:
+                    pen.DashStyle = DashStyle.Solid;
+                    break;
+            }
+            return pen;
+        }
+
+        private Brush CreateAnnotationFill()
+        {
+            switch (currentFillType)
+            {
+                case MissionPlanner.Controls.Icon.FillIcon.FillType.NoFill:
+                    return Brushes.Transparent;
+                case MissionPlanner.Controls.Icon.FillIcon.FillType.LightFill:
+                    return new SolidBrush(Color.FromArgb(25, currentAnnotationColor)); // 10% opacity
+                case MissionPlanner.Controls.Icon.FillIcon.FillType.StrongFill:
+                    return new SolidBrush(Color.FromArgb(128, currentAnnotationColor)); // 50% opacity
+                default:
+                    return Brushes.Transparent;
+            }
         }
 
         public void areaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -4921,6 +5606,101 @@ namespace MissionPlanner.GCSViews
             zoomicon.Paint(e.Graphics);
 
             e.Graphics.ResetTransform();
+
+            penicon.Location = new Point(10, zoomicon.Location.Y + zoomicon.Height + 5);
+            penicon.Paint(e.Graphics);
+
+            e.Graphics.ResetTransform();
+
+            // Draw annotation toolbar if annotation mode is active
+            if (annotationMode)
+            {
+                int yPos = penicon.Location.Y + penicon.Height + 5;
+                
+                // Draw tool icons
+                int toolIndex = 0;
+                foreach (var icon in toolIcons)
+                {
+                    icon.Location = new Point(10, yPos);
+                    icon.Paint(e.Graphics);
+                    e.Graphics.ResetTransform();
+                    
+                    // Draw finish polygon button next to polygon icon
+                    if (toolIndex == 2 && currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon && currentPolygonPoints.Count > 0)
+                    {
+                        finishPolygonIcon.Location = new Point(10 + icon.Width + 5, yPos);
+                        finishPolygonIcon.Paint(e.Graphics);
+                        e.Graphics.ResetTransform();
+                    }
+                    
+                    yPos += icon.Height + 3;
+                    toolIndex++;
+                }
+
+                yPos += 5; // Spacing before colors
+
+                // Draw color icons (2 columns, 4 rows)
+                int colorIndex = 0;
+                for (int row = 0; row < 4; row++)
+                {
+                    for (int col = 0; col < 2 && colorIndex < colorIcons.Count; col++)
+                    {
+                        int xPos = 10 + col * (colorIcons[0].Width + 3);
+                        colorIcons[colorIndex].Location = new Point(xPos, yPos + row * (colorIcons[0].Height + 3));
+                        colorIcons[colorIndex].Paint(e.Graphics);
+                        e.Graphics.ResetTransform();
+                        colorIndex++;
+                    }
+                }
+
+                yPos += 4 * (colorIcons[0].Height + 3) + 5; // Move past color icons
+
+                // Draw style icons and fill icons side by side below colors
+                // Layout: 2 columns like colors, with styles in left column and fills in right column
+                int styleYPos = yPos;
+                int fillYPos = yPos;
+                int iconSize = styleIcons.Count > 0 ? styleIcons[0].Width : 30;
+                int spacing = 3; // Same spacing as color buttons (2 columns with 3px spacing)
+
+                // Draw style icons (left column) and fill icons (right column) aligned
+                int maxCount = Math.Max(styleIcons.Count, fillIcons.Count);
+                for (int i = 0; i < maxCount; i++)
+                {
+                    // Draw style icon in left column
+                    if (i < styleIcons.Count)
+                    {
+                        styleIcons[i].Location = new Point(10, styleYPos);
+                        styleIcons[i].Paint(e.Graphics);
+                        e.Graphics.ResetTransform();
+                    }
+                    
+                    // Draw fill icon in right column (aligned with colors layout)
+                    if (i < fillIcons.Count)
+                    {
+                        fillIcons[i].Location = new Point(10 + iconSize + spacing, fillYPos);
+                        fillIcons[i].Paint(e.Graphics);
+                        e.Graphics.ResetTransform();
+                    }
+                    
+                    styleYPos += iconSize + 3;
+                    fillYPos += iconSize + 3;
+                }
+
+                // Draw eraser icon below
+                int eraserYPos = yPos + maxCount * (iconSize + 3) + 5;
+                eraserIcon.Location = new Point(10, eraserYPos);
+                eraserIcon.Paint(e.Graphics);
+                eraserIcon.IsSelected = eraserMode;
+                e.Graphics.ResetTransform();
+                
+                // Draw remove all icon next to eraser if eraser mode is active
+                if (eraserMode)
+                {
+                    removeAllIcon.Location = new Point(10 + eraserIcon.Width + 5, eraserYPos);
+                    removeAllIcon.Paint(e.Graphics);
+                    e.Graphics.ResetTransform();
+                }
+            }
         }
 
         private void MainMap_Resize(object sender, EventArgs e)
@@ -6930,12 +7710,60 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
             List<string> cmds = new List<string>();
 
+            // List of red-dot marked DO commands to exclude from the planner list
+            HashSet<string> excludedCommands = new HashSet<string>
+            {
+                "ATTITUDE_TIME",
+                "GUIDED_ENABLE",
+                "LOITER_TIME",
+                "LOITER_UNLIM",
+                "PAYLOAD_PLACE",
+                "SCRIPT_TIME",
+                "DO_SEND_SCRIPT_MESSAGE",
+                "IMAGE_START_CAPTURE",
+                "IMAGE_STOP_CAPTURE",
+                "SET_CAMERA_ZOOM",
+                "SET_CAMERA_FOCUS",
+                "SET_CAMERA_SOURCE",
+                "VIDEO_START_CAPTURE",
+                "VIDEO_STOP_CAPTURE",
+                "DO_AUX_FUNCTION",
+                "DO_DIGICAM_CONFIGURE",
+                "DO_DIGICAM_CONTROL",
+                "DO_ENGINE_CONTROL",
+                "DO_GIMBAL_MANAGER_PITCHYAW",
+                "DO_GRIPPER",
+                "DO_GUIDED_LIMITS",
+                "JUMP_TAG",
+                "DO_JUMP_TAG",
+                "DO_MOUNT_CONTROL",
+                "DO_PARACHUTE",
+                "DO_REPEAT_RELAY",
+                "DO_REPEAT_SERVO",
+                "DO_SET_CAM_TRIGG_DIST",
+                "DO_SPRAYER",
+                "DO_SET_RELAY",
+                "DO_SET_RESUME_REPEAT_DIST",
+                "DO_SET_ROI",
+                "DO_SET_ROI_LOCATION",
+                "DO_SET_ROI_NONE",
+                "DO_SET_SERVO",
+                "DO_WINCH",
+                "CONDITION_DELAY",
+                "CONDITION_DISTANCE",
+                "CONDITION_YAW"
+            };
+
             foreach (string item in cmdParamNames.Keys)
             {
-                cmds.Add(item);
+                // Skip red-dot marked DO commands
+                if (!excludedCommands.Contains(item))
+                {
+                    cmds.Add(item);
+                }
             }
 
-            cmds.Add("UNKNOWN");
+            //cmds.Add("UNKNOWN");
 
             Command.DataSource = cmds;
 
@@ -7171,6 +7999,28 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             if (e.Button == MouseButtons.Left && Control.ModifierKeys != Keys.Alt &&
                 Control.ModifierKeys != Keys.Control)
             {
+                // Check if in annotation mode
+                if (annotationMode)
+                {
+                    // Handle eraser mode
+                    if (eraserMode)
+                    {
+                        HandleEraserClick(e);
+                        return;
+                    }
+
+                    // Only handle pen and rectangle/circle tools in MouseDown
+                    // Polygon is handled in MouseUp to avoid conflicts with toolbar clicks
+                    if (currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Pen ||
+                        currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle ||
+                        currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Circle)
+                    {
+                        HandleAnnotationMouseDown(e);
+                        isMouseDown = true; // Set this so MouseMove will handle dragging
+                        return;
+                    }
+                }
+
                 isMouseDown = true;
                 isMouseDraging = false;
 
@@ -7206,6 +8056,13 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             //draging
             if (e.Button == MouseButtons.Left && isMouseDown)
             {
+                // Check if in annotation mode and drawing
+                if (annotationMode && isDrawingAnnotation)
+                {
+                    HandleAnnotationMouseMove(e);
+                    return;
+                }
+
                 isMouseDraging = true;
                 if (CurrentRallyPt != null)
                 {
@@ -7380,13 +8237,249 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                 return;
             }
 
+            if (penicon.Rectangle.Contains(e.Location))
+            {
+                ToggleAnnotationMode();
+                return;
+            }
+
+            // Handle clicks on annotation toolbar icons
+            bool clickedOnToolbar = false;
+            if (annotationMode)
+            {
+                int yPos = penicon.Location.Y + penicon.Height + 5;
+                
+                // Check tool icons
+                foreach (var icon in toolIcons)
+                {
+                    icon.Location = new Point(10, yPos);
+                    if (icon.Rectangle.Contains(e.Location))
+                    {
+                        // Deselect all tools
+                        foreach (var toolIcon in toolIcons)
+                            toolIcon.IsSelected = false;
+                        // Select clicked tool
+                        icon.IsSelected = true;
+                        // Update current tool
+                        if (icon == toolIcons[0])
+                            currentAnnotationTool = MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Rectangle;
+                        else if (icon == toolIcons[1])
+                            currentAnnotationTool = MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Circle;
+                        else if (icon == toolIcons[2])
+                            currentAnnotationTool = MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon;
+                        else if (icon == toolIcons[3])
+                            currentAnnotationTool = MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Pen;
+                        
+                        // Deselect eraser when selecting a tool
+                        eraserMode = false;
+                        eraserIcon.IsSelected = false;
+                        MainMap.Invalidate();
+                        clickedOnToolbar = true;
+                        return;
+                    }
+                    yPos += icon.Height + 3;
+                }
+
+                yPos += 5; // Spacing before colors
+
+                // Check color icons
+                int colorIndex = 0;
+                for (int row = 0; row < 4; row++)
+                {
+                    for (int col = 0; col < 2 && colorIndex < colorIcons.Count; col++)
+                    {
+                        int xPos = 10 + col * (colorIcons[0].Width + 3);
+                        colorIcons[colorIndex].Location = new Point(xPos, yPos + row * (colorIcons[0].Height + 3));
+                        if (colorIcons[colorIndex].Rectangle.Contains(e.Location))
+                        {
+                            // Deselect all colors
+                            foreach (var colorIcon in colorIcons)
+                                colorIcon.IsSelected = false;
+                            // Select clicked color
+                            colorIcons[colorIndex].IsSelected = true;
+                            // Update current color
+                            currentAnnotationColor = colorIcons[colorIndex].IconColor;
+                            MainMap.Invalidate();
+                            return;
+                        }
+                        colorIndex++;
+                    }
+                }
+
+                yPos += 4 * (colorIcons[0].Height + 3) + 5; // Move past color icons
+
+                // Check style icons and fill icons (side by side, aligned like colors)
+                int iconSize = styleIcons.Count > 0 ? styleIcons[0].Width : 30;
+                int spacing = 3; // Same spacing as color buttons
+
+                int maxCount = Math.Max(styleIcons.Count, fillIcons.Count);
+                int styleYPos = yPos;
+                int fillYPos = yPos;
+
+                // Check style icons (left column)
+                for (int i = 0; i < styleIcons.Count; i++)
+                {
+                    styleIcons[i].Location = new Point(10, styleYPos);
+                    if (styleIcons[i].Rectangle.Contains(e.Location))
+                    {
+                        // Deselect all styles
+                        foreach (var styleIcon in styleIcons)
+                            styleIcon.IsSelected = false;
+                        // Select clicked style
+                        styleIcons[i].IsSelected = true;
+                        // Update current style
+                        if (i == 0)
+                            currentLineStyle = MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Solid;
+                        else if (i == 1)
+                            currentLineStyle = MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Dashed;
+                        else if (i == 2)
+                            currentLineStyle = MissionPlanner.Controls.Icon.LineStyleIcon.LineStyleType.Dots;
+                        eraserMode = false;
+                        eraserIcon.IsSelected = false;
+                        MainMap.Invalidate();
+                        clickedOnToolbar = true;
+                        return;
+                    }
+                    styleYPos += iconSize + 3;
+                }
+
+                // Check fill icons (right column, aligned with colors)
+                for (int i = 0; i < fillIcons.Count; i++)
+                {
+                    fillIcons[i].Location = new Point(10 + iconSize + spacing, fillYPos);
+                    if (fillIcons[i].Rectangle.Contains(e.Location))
+                    {
+                        // Deselect all fills
+                        foreach (var fillIcon in fillIcons)
+                            fillIcon.IsSelected = false;
+                        // Select clicked fill
+                        fillIcons[i].IsSelected = true;
+                        // Update current fill
+                        if (i == 0)
+                            currentFillType = MissionPlanner.Controls.Icon.FillIcon.FillType.NoFill;
+                        else if (i == 1)
+                            currentFillType = MissionPlanner.Controls.Icon.FillIcon.FillType.LightFill;
+                        else if (i == 2)
+                            currentFillType = MissionPlanner.Controls.Icon.FillIcon.FillType.StrongFill;
+                        eraserMode = false;
+                        eraserIcon.IsSelected = false;
+                        MainMap.Invalidate();
+                        clickedOnToolbar = true;
+                        return;
+                    }
+                    fillYPos += iconSize + 3;
+                }
+
+                // Check eraser icon
+                int eraserYPos = yPos + maxCount * (iconSize + 3) + 5;
+                eraserIcon.Location = new Point(10, eraserYPos);
+                if (eraserIcon.Rectangle.Contains(e.Location))
+                {
+                    eraserMode = !eraserMode;
+                    eraserIcon.IsSelected = eraserMode;
+                    // If turning on eraser, deselect all other tools
+                    if (eraserMode)
+                    {
+                        foreach (var toolIcon in toolIcons)
+                            toolIcon.IsSelected = false;
+                        foreach (var styleIcon in styleIcons)
+                            styleIcon.IsSelected = false;
+                        foreach (var fillIcon in fillIcons)
+                            fillIcon.IsSelected = false;
+                    }
+                    MainMap.Invalidate();
+                    clickedOnToolbar = true;
+                    return;
+                }
+
+                // Check remove all icon (if eraser is active)
+                if (eraserMode)
+                {
+                    removeAllIcon.Location = new Point(10 + eraserIcon.Width + 5, eraserYPos);
+                    if (removeAllIcon.Rectangle.Contains(e.Location))
+                    {
+                        RemoveAllAnnotations();
+                        clickedOnToolbar = true;
+                        return;
+                    }
+                }
+
+                // Check finish polygon button if polygon tool is selected and has points
+                if (currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon && currentPolygonPoints.Count > 0)
+                {
+                    // Position it next to polygon icon (not below)
+                    int polygonIconY = penicon.Location.Y + penicon.Height + 5 + 2 * (toolIcons[0].Height + 3); // Position of polygon icon
+                    finishPolygonIcon.Location = new Point(10 + toolIcons[0].Width + 5, polygonIconY);
+                    if (finishPolygonIcon.Rectangle.Contains(e.Location))
+                    {
+                        FinishAnnotationPolygon();
+                        clickedOnToolbar = true;
+                        return;
+                    }
+                }
+            }
+
             MouseDownEnd = MainMap.FromLocalToLatLng(e.X, e.Y);
 
             // Console.WriteLine("MainMap MU");
 
             if (e.Button == MouseButtons.Right) // ignore right clicks
             {
+                if (annotationMode && currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon)
+                {
+                    // Right click to finish polygon
+                    if (currentPolygonPoints.Count >= 3)
+                    {
+                        FinishAnnotationPolygon();
+                    }
+                    return;
+                }
                 return;
+            }
+
+            // Handle annotation mode
+            if (annotationMode)
+            {
+                // Check if we clicked on toolbar icons first
+                if (clickedOnToolbar) return;
+
+                // Handle eraser mode
+                if (eraserMode && e.Button == MouseButtons.Left)
+                {
+                    HandleEraserClick(e);
+                    return;
+                }
+
+                // For polygon, add point on left click (if not on toolbar and not eraser mode)
+                if (!eraserMode && currentAnnotationTool == MissionPlanner.Controls.Icon.AnnotationToolIcon.AnnotationToolType.Polygon && e.Button == MouseButtons.Left)
+                {
+                    annotationStartPoint = MainMap.FromLocalToLatLng(e.X, e.Y);
+                    currentPolygonPoints.Add(annotationStartPoint);
+                    
+                    // Draw polygon preview
+                    if (currentPolygonPoints.Count > 1)
+                    {
+                        // Remove old preview
+                        if (annotationsoverlay.Polygons.Count > 0 && annotationsoverlay.Polygons.Last().Tag?.ToString() == "polygon_preview")
+                        {
+                            annotationsoverlay.Polygons.RemoveAt(annotationsoverlay.Polygons.Count - 1);
+                        }
+                        
+                        var previewPolygon = new GMapPolygon(currentPolygonPoints, "polygon_preview");
+                        previewPolygon.Stroke = CreateAnnotationPen();
+                        previewPolygon.Fill = CreateAnnotationFill();
+                        previewPolygon.Tag = "polygon_preview";
+                        annotationsoverlay.Polygons.Add(previewPolygon);
+                    }
+                    MainMap.Invalidate();
+                    return;
+                }
+                
+                if (isDrawingAnnotation)
+                {
+                    HandleAnnotationMouseUp(e);
+                    return;
+                }
             }
 
             if (isMouseDown) // mouse down on some other object and dragged to here.

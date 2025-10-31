@@ -411,6 +411,25 @@ namespace MissionPlanner.GCSViews
 
             gMapControl1.Overlays.Add(poioverlay);
 
+            // Add annotations overlay from FlightPlanner (separate overlay, like waypoints)
+            // This will be added here if FlightPlanner was initialized first,
+            // or will be added later by FlightPlanner when it initializes
+            if (MissionPlanner.GCSViews.FlightPlanner.annotationsoverlayFlightData != null)
+            {
+                // Remove if already added (in case of re-initialization)
+                var existingOverlay = gMapControl1.Overlays.FirstOrDefault(o => o.Id == "annotations");
+                if (existingOverlay != null && existingOverlay != MissionPlanner.GCSViews.FlightPlanner.annotationsoverlayFlightData)
+                {
+                    gMapControl1.Overlays.Remove(existingOverlay);
+                }
+                
+                // Add overlay if not already present
+                if (!gMapControl1.Overlays.Contains(MissionPlanner.GCSViews.FlightPlanner.annotationsoverlayFlightData))
+                {
+                    gMapControl1.Overlays.Add(MissionPlanner.GCSViews.FlightPlanner.annotationsoverlayFlightData);
+                }
+            }
+
             float gspeedMax = Settings.Instance.GetFloat("GspeedMAX");
             if (gspeedMax != 0)
             {

@@ -306,6 +306,8 @@ namespace MissionPlanner.Controls
         private float _targetheading = 0;
         private float _alt = 0;
         private float _targetalt = 0;
+        private float _barometer_altitude = 0;
+        private float _gps_altitude = 0;
         private float _groundspeed = 0;
         private float _airspeed = 0;
         private bool _lowgroundspeed = false;
@@ -465,6 +467,34 @@ namespace MissionPlanner.Controls
                 if (_targetalt != value)
                 {
                     _targetalt = value;
+                    this.Invalidate();
+                }
+            }
+        }
+
+        [System.ComponentModel.Browsable(true), System.ComponentModel.Category("Values")]
+        public float barometer_altitude
+        {
+            get { return _barometer_altitude; }
+            set
+            {
+                if (_barometer_altitude != value)
+                {
+                    _barometer_altitude = value;
+                    this.Invalidate();
+                }
+            }
+        }
+
+        [System.ComponentModel.Browsable(true), System.ComponentModel.Category("Values")]
+        public float gps_altitude
+        {
+            get { return _gps_altitude; }
+            set
+            {
+                if (_gps_altitude != value)
+                {
+                    _gps_altitude = value;
                     this.Invalidate();
                 }
             }
@@ -2982,6 +3012,30 @@ namespace MissionPlanner.Controls
                         }
 
                         a++;
+                    }
+                }
+
+                // Display barometer and GPS altitude in bottom right corner
+                if (displaygps)
+                {
+                    graphicsObject.ResetTransform();
+                    string baroText = "Baro: " + _barometer_altitude.ToString("0.0") + altunit;
+                    string gpsText = "GPS: " + _gps_altitude.ToString("0.0") + altunit;
+                    
+                    // Position below GPS status, in the bottom right corner
+                    int rightOffset = 13 * fontsize;
+                    int bottomOffset = yPos[1] - yTextOffset - 2;
+                    
+                    // Draw barometer altitude (above GPS, matching image layout)
+                    if (_barometer_altitude != 0)
+                    {
+                        drawstring(baroText, font, fontsize, _whiteBrush, this.Width - rightOffset, bottomOffset);
+                    }
+                    
+                    // Draw GPS altitude (below barometer)
+                    if (_gps_altitude != 0)
+                    {
+                        drawstring(gpsText, font, fontsize, _whiteBrush, this.Width - rightOffset, bottomOffset - yTextOffset);
                     }
                 }
 
